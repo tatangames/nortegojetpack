@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.santaananortemetapan.nortego" />
+                  <option name="mobileSdkAppId" value="1:697812221943:android:e2f62ed1df32c37551f8f2" />
+                  <option name="projectId" value="nortego-41cf5" />
+                  <option name="projectNumber" value="697812221943" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

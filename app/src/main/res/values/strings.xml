@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">JetPack</string>
+    <string name="app_name">NorteGo</string>
+    <string name="numero_telefono">Número de Teléfono</string>
+    <string name="el_salvador">El Salvador</string>
+    <string name="logo">Logo</string>
+    <string name="verificar">VERIFICAR</string>
+    <string name="area_pais">+503</string>
+
+
+
+
+
 </resources>

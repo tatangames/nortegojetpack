@@ -14,34 +14,60 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -56,27 +82,24 @@ class SplashApp : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MySplash()
+            // INICIO DE APLICACION
+            val navController = rememberNavController()
+
+            NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
+                composable(Routes.VistaSplash.route) { SplashScreen(navController) }
+                composable(Routes.VistaLogin.route) { LoginScreen() }
+            }
         }
     }
 }
 
 @Composable
-fun MySplash() {
-    val navController = rememberNavController()
-
-    NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
-        composable(Routes.VistaSplash.route) { SplashScreen(navController) }
-        composable(Routes.VistaLogin.route) { LoginScreen() }
-    }
-}
-
-@Composable
 fun SplashScreen(navController: NavHostController) {
-    // Evita volver al splash con el botón atrás
+
+    // Evitar que el usuario volver al splash con el botón atrás
     DisposableEffect(Unit) {
         onDispose {
-            navController.popBackStack("splash", true)
+            navController.popBackStack(Routes.VistaSplash.route, true)
         }
     }
 
@@ -84,7 +107,7 @@ fun SplashScreen(navController: NavHostController) {
     LaunchedEffect(key1 = true) {
         delay(3000) // 3 segundos de retraso
         navController.navigate(Routes.VistaLogin.route) {
-            popUpTo("splash") { inclusive = true }
+            popUpTo(Routes.VistaSplash.route) { inclusive = true }
         }
     }
 
@@ -95,9 +118,9 @@ fun SplashScreen(navController: NavHostController) {
     ) {
         Image(
             painter = painterResource(id = R.drawable.logofinal), // Tu imagen aquí
-            contentDescription = "Splash Image",
+            contentDescription = stringResource(id = R.string.logo),
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size(200.dp) // Tamaño máximo de la imagen
+            modifier = Modifier.size(200.dp)
         )
     }
 }
@@ -105,6 +128,12 @@ fun SplashScreen(navController: NavHostController) {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreen() {
+
+    var txtFieldNumero by remember { mutableStateOf("") }
+
+    val fontMonserratMedium = FontFamily(
+        Font(R.font.montserratmedium)
+    )
 
     Box(
         modifier = Modifier
@@ -119,12 +148,12 @@ fun LoginScreen() {
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(30.dp)) // Margen superior
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Imagen (logotipo)
             Image(
-                painter = painterResource(id = R.drawable.logofinal), // Tu imagen
-                contentDescription = "Logo",
+                painter = painterResource(id = R.drawable.logofinal),
+                contentDescription = stringResource(id = R.string.logo),
                 modifier = Modifier.size(199.dp),
                 contentScale = ContentScale.Fit
             )
@@ -133,76 +162,167 @@ fun LoginScreen() {
 
             // Texto (titulo)
             Text(
-                text = "App Name", // Tu string aquí
-                fontSize = 28.sp,
+                text = stringResource(id = R.string.app_name), // Tu string aquí
+                fontSize = 27.sp,
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                lineHeight = 40.sp
+                modifier = Modifier
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center, // Alinea el texto al centro horizontalmente
+                lineHeight = 40.sp,
+                fontFamily = fontMonserratMedium
             )
 
             Spacer(modifier = Modifier.height(20.dp)) // Espacio entre el título y el listado
 
-            // Layout para el listado de país y número de teléfono
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Imagen de la bandera
-                Image(
-                    painter = painterResource(id = R.drawable.flag_elsalvador), // Tu bandera
-                    contentDescription = "El Salvador",
-                    modifier = Modifier.size(24.dp)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Código del país
-                Text(
-                    text = "+503",
-                    fontSize = 18.sp,
-                    color = Color.Black
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Campo de texto para el teléfono
-                BasicTextField(
-                    value = "", // Tu valor aquí
-                    onValueChange = { /* Manejar el cambio de texto */ },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .padding(horizontal = 8.dp)
-                )
-            }
+            BloqueTextFieldLogin(text = txtFieldNumero, onTextChanged = { newText ->
+                txtFieldNumero = newText
+            })
 
             Spacer(modifier = Modifier.height(50.dp)) // Espacio antes del botón
 
             // Botón de registro
-            Button (
-                onClick = { /* Acción del botón */ },
+            Button(
+                onClick = { },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .height(40.dp)
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(
+                        ContextCompat.getColor(
+                            LocalContext.current,
+                            R.color.c_azulv1
+                        )
+                    ),
+                    contentColor = Color.White
+                ),
             ) {
                 Text(
-                    text = "Ingresar",
-                    fontSize = 18.sp
+                    text = stringResource(id = R.string.verificar),
+                    fontSize = 18.sp,
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
                 )
             }
         }
     }
 }
 
-
-
 @Composable
-fun DefaultPreview() {
-    NorteGoJetpackComposeTheme {
-        SplashScreen(rememberNavController())
+fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
+            .background(Color(0xFFF5F5F5)) // Color de fondo
+            .padding(6.dp), // Espaciado interno
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Imagen de la bandera
+        Image(
+            painter = painterResource(id = R.drawable.flag_elsalvador), // Tu bandera
+            contentDescription = stringResource(id = R.string.el_salvador),
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Código del país
+        Text(
+            text = stringResource(id = R.string.area_pais),
+            fontSize = 18.sp,
+            color = Color.Black
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    val strokeWidth = 2.dp.toPx()
+                    val y = size.height - strokeWidth / 2
+                    drawLine(
+                        color = Color.Gray,
+                        start = Offset(0f, y),
+                        end = Offset(size.width, y),
+                        strokeWidth = strokeWidth
+                    )
+                }
+        ) {
+            TextField(
+                value = text,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                onValueChange = { newText ->
+                    if (newText.length <= 8) {
+                        onTextChanged(newText)
+                    }
+                },
+
+                // transformar numeros para agregar el gion
+                visualTransformation = PhoneNumberVisualTransformation(),
+
+                textStyle = TextStyle(
+                    fontSize = 18.sp, // Tamaño del texto
+                    fontWeight = FontWeight.Medium // Negrita
+                ),
+                placeholder = { Text(text = stringResource(id = R.string.numero_telefono)) },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF5F5F5),
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    disabledContainerColor = Color(0xFFF5F5F5),
+                    errorContainerColor = Color(0xFFF5F5F5),
+                    focusedIndicatorColor = Color.Black,
+                    unfocusedIndicatorColor = Color.Black
+                ),
+            )
+        }
+    }
+}
+
+
+// vericar entradas
+fun verificarEntradas(numero: String) {
+
+    // numero es requerido
+
+    // minimo 8 caracteres
+
+    // verificar
+}
+
+
+
+
+// PARA AGREGAR EL GUION EN EL NUMERO DE TELEFONO
+class PhoneNumberVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val input = text.text
+        val transformedText = buildString {
+            for (i in input.indices) {
+                append(input[i])
+                if (i == 3) {
+                    append('-')
+                }
+            }
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                return if (offset > 3) offset + 1 else offset
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                return if (offset > 4) offset - 1 else offset
+            }
+        }
+
+        return TransformedText(AnnotatedString(transformedText), offsetMapping)
     }
 }

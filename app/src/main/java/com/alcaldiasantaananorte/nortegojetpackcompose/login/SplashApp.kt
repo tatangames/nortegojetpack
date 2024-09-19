@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,7 +27,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -73,6 +78,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.NorteGoJetpackComposeTheme
 
@@ -83,13 +89,19 @@ class SplashApp : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             // INICIO DE APLICACION
-            val navController = rememberNavController()
-
-            NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
-                composable(Routes.VistaSplash.route) { SplashScreen(navController) }
-                composable(Routes.VistaLogin.route) { LoginScreen() }
-            }
+            AppNavigation()
         }
+    }
+}
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
+        composable(Routes.VistaSplash.route) { SplashScreen(navController) }
+        composable(Routes.VistaLogin.route) { LoginScreen(navController) }
+        composable(Routes.VistaVerificarNumero.route) { vistaVerificarNumero(navController) }
     }
 }
 
@@ -103,9 +115,9 @@ fun SplashScreen(navController: NavHostController) {
         }
     }
 
-    // Control de la navegación tras un retraso
+    // Control de la navegación tras un retraso0
     LaunchedEffect(key1 = true) {
-        delay(3000) // 3 segundos de retraso
+        delay(2000)
         navController.navigate(Routes.VistaLogin.route) {
             popUpTo(Routes.VistaSplash.route) { inclusive = true }
         }
@@ -125,9 +137,12 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
-@Preview(showBackground = true)
+
+
+
+
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavHostController) {
 
     var txtFieldNumero by remember { mutableStateOf("") }
 
@@ -140,11 +155,12 @@ fun LoginScreen() {
             .fillMaxSize()
             .background(Color.White)
             .padding(top = 25.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Habilita scroll
+                .imePadding()
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -158,7 +174,7 @@ fun LoginScreen() {
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(15.dp)) // Espacio entre la imagen y el texto
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Texto (titulo)
             Text(
@@ -183,7 +199,15 @@ fun LoginScreen() {
 
             // Botón de registro
             Button(
-                onClick = { },
+                onClick = {
+
+                    navController.navigate(Routes.VistaVerificarNumero.route) {
+                        // Asegúrate de mantener la pantalla de login en la pila de navegación
+                        popUpTo(Routes.VistaLogin.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+
+                          },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
@@ -207,6 +231,8 @@ fun LoginScreen() {
                     )
                 )
             }
+
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
@@ -287,6 +313,13 @@ fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
 }
 
 
+@Composable
+fun vistaVerificarNumero(navController: NavHostController){
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text("Otra Vista")
+    }}
+
+
 // vericar entradas
 fun verificarEntradas(numero: String) {
 
@@ -300,29 +333,3 @@ fun verificarEntradas(numero: String) {
 
 
 
-// PARA AGREGAR EL GUION EN EL NUMERO DE TELEFONO
-class PhoneNumberVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val input = text.text
-        val transformedText = buildString {
-            for (i in input.indices) {
-                append(input[i])
-                if (i == 3) {
-                    append('-')
-                }
-            }
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                return if (offset > 3) offset + 1 else offset
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                return if (offset > 4) offset - 1 else offset
-            }
-        }
-
-        return TransformedText(AnnotatedString(transformedText), offsetMapping)
-    }
-}

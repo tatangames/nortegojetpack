@@ -1,6 +1,7 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.login
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,19 +33,23 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -57,18 +62,20 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyDark
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun VistaVerificarNumero(navController: NavHostController, telefono: String, segundos: Int){
 
-    var otp by remember { mutableStateOf("") }
+    var txtFieldCodigo by remember { mutableStateOf("") }
 
-   BarraToolbar(navController)
-
+    BarraToolbar(navController)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -93,13 +100,16 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
 
         Spacer(modifier = Modifier.height(35.dp)) // Espacio entre la imagen y el TextField
 
-        OTPInput(otp = otp, onOtpChange = { otp = it })
+
+        OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
+            txtFieldCodigo = newText
+        })
 
         Spacer(modifier = Modifier.height(35.dp))
 
         // Puedes agregar un botón para enviar el OTP
         Button(
-            onClick = { /* Manejar clic */ },
+            onClick = { verificarCodigo(txtFieldCodigo) },
             colors = ButtonDefaults.buttonColors(
                 containerColor = ColorAzulGob, // Color de fondo
                 contentColor = Color.White // Color del texto (puedes usar ColorTexto si lo defines)
@@ -111,6 +121,12 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
             )
         }
 
+        Spacer(modifier = Modifier.height(35.dp))
+
+        CountdownTimer() {
+            // Acción cuando se presiona "Reenviar código"
+            // Aquí puedes agregar la lógica para reenviar el código o hacer alguna otra acción
+        }
 
 
     }
@@ -118,74 +134,56 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
 
 
 @Composable
-fun OtpTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onNext: () -> Unit
-) {
-    TextField(
-        value = value,
-        onValueChange = { newValue ->
-            if (newValue.length <= 1) {
-                onValueChange(newValue)
-                if (newValue.isNotEmpty()) {
-                    onNext() // Mueve al siguiente campo al ingresar un número
-                }
+fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    BasicTextField(
+        value = codigo,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number, // Cambiado a Number para solo números
+            imeAction = ImeAction.Done // Para evitar el botón "Enter"
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {keyboardController?.hide() }
+        ),
+        onValueChange = { newText ->
+            if (newText.length <= 6){
+                onTextChanged(newText)
             }
         },
-        modifier = modifier
-            .size(56.dp) // Ajusta el tamaño del TextField
-            .padding(4.dp), // Espaciado opcional
-        textStyle = TextStyle(fontSize = 24.sp, textAlign = TextAlign.Center),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        visualTransformation = VisualTransformation.None, // Texto visible
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent
-        )
-    )
-}
-
-@Composable
-fun OTPInput(
-    otp: String,
-    onOtpChange: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        singleLine = true
     ) {
-        // Crea un campo para cada dígito del OTP
-        for (i in 0 until 6) {
-            val currentChar = if (i < otp.length) otp[i].toString() else ""
-            OtpTextField(
-                value = currentChar,
-                onValueChange = { newValue ->
-                    // Actualiza el OTP completo
-                    val newOtp = otp.toMutableList()
-                    if (newValue.isNotEmpty()) {
-                        newOtp[i] = newValue.first()
-                    } else {
-                        newOtp[i] = ' ' // O puedes dejarlo como un espacio
-                    }
-                    onOtpChange(newOtp.joinToString(""))
-                },
-                modifier = Modifier.size(50.dp), // Ajusta el tamaño según sea necesario
-                onNext = {
-                    // Mueve el foco al siguiente campo
-                    if (i < 5) {
-                        // Lógica para cambiar al siguiente TextField
-                        // Esto se maneja en la lógica del controlador de entrada
-                    }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            repeat(6) { index ->
+                val number = when {
+                    index >= codigo.length -> ""
+                    else -> codigo[index]
                 }
-            )
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = number.toString(),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Box(modifier = Modifier.width(40.dp).height(2.dp)
+                        .background(Color.Black))
+                }
+            }
         }
     }
 }
 
+
+fun verificarCodigo(codigo: String){
+    Log.i("CODIGO", "codigo es: " + codigo)
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -225,6 +223,49 @@ fun BarraToolbar(navController: NavHostController){
         modifier = Modifier.height(56.dp)
     )
 }
+
+
+
+@Composable
+fun CountdownTimer(onResendClick: () -> Unit) {
+    var timerValue by remember { mutableStateOf(6) }
+    var isCounting by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(isCounting) {
+        if (isCounting) {
+            while (timerValue > 0) {
+                delay(1000L)
+                timerValue--
+            }
+            isCounting = false
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (isCounting) {
+            Text(text = "Reenviar en $timerValue s")
+        } else {
+            TextButton(
+                onClick = {
+                    timerValue = 30
+                    isCounting = true
+                    scope.launch { onResendClick() } // Acción al presionar "Reenviar código"
+                }
+            ) {
+                Text(text = stringResource(id = R.string.reenviar_codigo),)
+            }
+        }
+    }
+}
+
+
+
+
+
+
 
 @Preview(showBackground = true)
 @Composable

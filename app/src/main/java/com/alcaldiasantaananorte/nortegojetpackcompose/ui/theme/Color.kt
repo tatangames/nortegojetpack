@@ -15,6 +15,7 @@ val ColorAzulGob = Color(0xFF404A7A)
 val ColorGris1Gob = Color(0xFF3c4557)
 val ColorGris2Gob = Color(0xFF212529)
 val ColorBlancoGob = Color(0xFFFFFFFF)
+val ColorNegroGob = Color(0xFF000000)
 
 
 

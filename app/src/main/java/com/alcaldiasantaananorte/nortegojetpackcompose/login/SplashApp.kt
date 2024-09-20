@@ -1,11 +1,14 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.login
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,8 +24,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -30,8 +37,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +61,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -62,8 +75,22 @@ import androidx.navigation.navArgument
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
+import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
+import com.alcaldiasantaananorte.nortegojetpackcompose.network.TelefonoRequest
+import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomePage
+import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomeViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris2Gob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 
 class SplashApp : ComponentActivity() {
@@ -73,6 +100,7 @@ class SplashApp : ComponentActivity() {
         setContent {
             // INICIO DE APLICACION
             AppNavigation()
+
         }
     }
 }
@@ -132,10 +160,167 @@ fun SplashScreen(navController: NavHostController) {
 
 
 
+@Composable
+fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
+    val telefono by viewModel.telefono.observeAsState("")
+    val resultado by viewModel.resultado.observeAsState(null)
+    val isLoading by viewModel.isLoading.observeAsState(false)
+
+    var txtFieldNumero by remember { mutableStateOf(telefono) }
+
+    val fontMonserratMedium = FontFamily(
+        Font(R.font.montserratmedium)
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(top = 25.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Imagen (logotipo)
+            Image(
+                painter = painterResource(id = R.drawable.logofinal),
+                contentDescription = stringResource(id = R.string.logo),
+                modifier = Modifier.size(199.dp),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Texto (titulo)
+            Text(
+                text = stringResource(id = R.string.app_name),
+                fontSize = 27.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                lineHeight = 40.sp,
+                fontFamily = fontMonserratMedium
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            BloqueTextFieldLogin(text = txtFieldNumero, onTextChanged = { newText ->
+                txtFieldNumero = newText
+                viewModel.setTelefono(newText)  // Actualiza el ViewModel
+            })
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // Botón de registro
+            Button(
+                onClick = {
+                    viewModel.verificarTelefono()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ColorAzulGob,
+                    contentColor = ColorBlancoGob
+                ),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.verificar),
+                    fontSize = 18.sp,
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+
+        // Mostrar el loading modal si isLoading es true
+        LoadingModal(isLoading = isLoading)
+    }
+
+
+    resultado?.let {
+        // Muestra el resultado o haz algo con él
+        Log.i("VERIFICACION", it)
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen2(navController: NavHostController) {
+
+    var telefono by remember { mutableStateOf("") }
+    var resultado by remember { mutableStateOf<String?>(null) }
+    var disposable: Disposable? = remember { null }
+
+    fun verificarTelefono(telefono: String) {
+
+
+        disposable = RetrofitBuilder.getApiService().verificarTelefono(telefono)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .retry(3)
+            .subscribe(
+                { response ->
+                    // Manejar respuesta exitosa
+                    resultado = "Verificación exitosa: ${response.success}"
+                    Log.i("VERIFICACION", resultado ?: "")
+                },
+                { error ->
+                    // Manejar error
+                    resultado = "Error: ${error.message}"
+                    Log.i("VERIFICACION", resultado ?: "")
+                }
+            )
+    }
+
+    // Limpia la suscripción cuando el composable se desmonta
+    DisposableEffect(Unit) {
+        onDispose {
+            disposable?.dispose()  // Limpiar la suscripción
+        }
+    }
+
+
+
 
     var txtFieldNumero by remember { mutableStateOf("") }
 
@@ -193,16 +378,20 @@ fun LoginScreen(navController: NavHostController) {
             // Botón de registro
             Button(
                 onClick = {
+                    //verificarEntradas(txtFieldNumero)
+                            /*val telefono = "1234567890"
+                            val segundos = 30
 
-                    val telefono = "1234567890"
-                    val segundos = 30
+                            navController.navigate(Routes.VistaVerificarNumero.verificarNumeroConParametros(telefono, segundos)) {
+                                popUpTo(Routes.VistaLogin.route) { inclusive = false }
+                                launchSingleTop = true
+                            }*/
 
-                    navController.navigate(Routes.VistaVerificarNumero.verificarNumeroConParametros(telefono, segundos)) {
-                        popUpTo(Routes.VistaLogin.route) { inclusive = false }
-                        launchSingleTop = true
-                    }
+                    verificarTelefono(telefono)
 
-                          },
+
+
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
@@ -234,14 +423,14 @@ fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp)) // Bordes redondeados
-            .background(Color(0xFFF5F5F5)) // Color de fondo
-            .padding(6.dp), // Espaciado interno
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF5F5F5))
+            .padding(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Imagen de la bandera
+
         Image(
-            painter = painterResource(id = R.drawable.flag_elsalvador), // Tu bandera
+            painter = painterResource(id = R.drawable.flag_elsalvador),
             contentDescription = stringResource(id = R.string.el_salvador),
             modifier = Modifier.size(24.dp)
         )
@@ -305,16 +494,31 @@ fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
 
 
 
-// vericar entradas
-fun verificarEntradas(numero: String) {
 
-    // numero es requerido
 
-    // minimo 8 caracteres
-
-    // verificar
+@Composable
+fun LoadingModal(isLoading: Boolean) {
+    if (isLoading) {
+        Dialog(onDismissRequest = { /* Evitar que se cierre el modal */ }) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(160.dp)
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = ColorAzulGob)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Cargando..ffffffff.",
+                        fontSize = 18.sp,
+                        color = ColorNegroGob
+                    )
+                }
+            }
+        }
+    }
 }
-
-
-
-

@@ -72,6 +72,16 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.7.2")
     implementation("androidx.compose.material:material:1.7.2")
 
+    implementation("com.squareup.retrofit2:adapter-rxjava2:2.5.0") //rxjava
+    implementation("com.squareup.retrofit2:converter-gson:2.5.0") //rxjava
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.0") //rxjava
+    implementation("io.reactivex.rxjava2:rxjava:2.2.2") //rxjava
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.2")
+
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

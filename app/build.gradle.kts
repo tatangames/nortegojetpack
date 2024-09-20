@@ -64,8 +64,14 @@ dependencies {
 
     // notificaciones one signal
     implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
-
     implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("androidx.compose.material:material-icons-extended:1.7.2")
+
+    implementation("androidx.compose.ui:ui:1.7.2")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.2")
+    implementation("androidx.compose.material:material:1.7.2")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

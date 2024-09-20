@@ -5,6 +5,9 @@
     <string name="logo">Logo</string>
     <string name="verificar">VERIFICAR</string>
     <string name="area_pais">+503</string>
+    <string name="codigo_mensaje">Ingresa el código de 6 dígitos que enviamos a tu número de teléfono %s</string>
+    <string name="reenviar_codigo">Reenviar código</string>
+    <string name="guiones">--- ---</string>
 
 
 

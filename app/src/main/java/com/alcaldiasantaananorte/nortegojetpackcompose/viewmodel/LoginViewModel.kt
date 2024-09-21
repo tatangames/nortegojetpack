@@ -72,8 +72,8 @@ import androidx.navigation.navArgument
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
-import com.alcaldiasantaananorte.nortegojetpackcompose.network.TelefonoRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -88,8 +88,8 @@ class LoginViewModel : ViewModel() {
     private val _telefono = MutableLiveData<String>()
     val telefono: LiveData<String> get() = _telefono
 
-    private val _resultado = MutableLiveData<String?>()
-    val resultado: LiveData<String?> get() = _resultado
+    private val _resultado = MutableLiveData<ModeloVerificacion>()
+    val resultado: LiveData<ModeloVerificacion> = _resultado
 
     // Nuevo estado de loading
     private val _isLoading = MutableLiveData(false)
@@ -102,6 +102,13 @@ class LoginViewModel : ViewModel() {
     }
 
     fun verificarTelefono() {
+
+        val telefonoValue = _telefono.value
+        if (telefonoValue.isNullOrEmpty()) {
+            _resultado.value = ModeloVerificacion(success = 0)
+            return
+        }
+
         _isLoading.value = true  // Mostramos loading
 
         disposable = RetrofitBuilder.getApiService().verificarTelefono(_telefono.value!!)
@@ -110,11 +117,26 @@ class LoginViewModel : ViewModel() {
             .retry()
             .subscribe(
                 { response ->
-                    _resultado.value = "Verificación exitosa: ${response.success}"
-                    _isLoading.value = false  // Ocultamos loading
+
+                    _isLoading.value = false
+                    val success = response.success
+
+                    if(success == 1){
+
+                        // numero bloqueado
+
+                    }else{
+                        val segundos = response.segundos
+
+                        // Usas esos valores según sea necesario
+                       // _resultado.value = "Verificación exitosa: $success, Segundos: $segundos"
+                    }
+
+
+
                 },
                 { error ->
-                    _resultado.value = "Error: ${error.message}"
+                    //_resultado.value = "Error: ${error.message}"
                     _isLoading.value = false  // Ocultamos loading
                 }
             )

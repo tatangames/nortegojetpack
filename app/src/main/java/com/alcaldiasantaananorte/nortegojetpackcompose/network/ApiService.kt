@@ -2,6 +2,7 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.network
 
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificacion
 import io.reactivex.Observable
+import io.reactivex.Single
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -13,12 +14,9 @@ interface ApiService {
     // VERIFICACION DE NUMERO
     @POST("app/verificacion/telefono")
     @FormUrlEncoded
-    fun verificarTelefono(@Field("telefono") telefono: String): Observable<ModeloVerificacion>
+    fun verificarTelefono(@Field("telefono") telefono: String): Single<ModeloVerificacion>
 
 
 }
 
 
-data class TelefonoRequest(
-    val telefono: String
-)

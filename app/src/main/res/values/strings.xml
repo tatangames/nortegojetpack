@@ -7,7 +7,13 @@
     <string name="area_pais">+503</string>
     <string name="codigo_mensaje">Ingresa el código de 6 dígitos que enviamos a tu número de teléfono %s</string>
     <string name="reenviar_codigo">Reenviar código</string>
-    <string name="guiones">--- ---</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="telefono_es_requerido">Teléfono es requerido</string>
+    <string name="el_numero_telefono_introducido">El teléfono introducido es demasiado corto</string>
+    <string name="nota">Nota</string>
+    <string name="verificar_el_numero_de_telefono">Verificar el número de teléfono.</string>
+    <string name="numero_bloqueado">Número de teléfono bloqueado, contactar a la Administración</string>
+
 
 
 

@@ -8,9 +8,9 @@ data class ModeloVerificacion(
     val success: Int,
 
     @SerializedName("canretry")
-    val canRetry: Int,
+    val canRetry: Int? = null,
 
     @SerializedName("segundos")
-    val segundos: Int
+    val segundos: Int? = null
 )
 

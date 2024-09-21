@@ -73,10 +73,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
-import com.alcaldiasantaananorte.nortegojetpackcompose.network.TelefonoRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomePage
 import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomeViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
@@ -100,7 +101,6 @@ class SplashApp : ComponentActivity() {
         setContent {
             // INICIO DE APLICACION
             AppNavigation()
-
         }
     }
 }
@@ -158,15 +158,17 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
-
-
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
     val telefono by viewModel.telefono.observeAsState("")
-    val resultado by viewModel.resultado.observeAsState(null)
+    val resultado by viewModel.resultado.observeAsState()
     val isLoading by viewModel.isLoading.observeAsState(false)
-
     var txtFieldNumero by remember { mutableStateOf(telefono) }
+
+    // MODAL
+    var showModal1Boton by remember { mutableStateOf(false) }
+    var modalMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
@@ -222,7 +224,23 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             // Botón de registro
             Button(
                 onClick = {
-                    viewModel.verificarTelefono()
+
+                    Log.i("DATOSS", "es: $txtFieldNumero")
+
+                    when {
+                        txtFieldNumero.isBlank() -> {
+                            modalMessage = context.getString(R.string.telefono_es_requerido)
+                            showModal1Boton = true
+                        }
+
+                        txtFieldNumero.length < 8 -> { // VA SIN GUION
+                            modalMessage = context.getString(R.string.logo)
+                            showModal1Boton = true
+                        }
+                        else -> {
+                            viewModel.verificarTelefono()
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -247,174 +265,55 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
         }
 
         // Mostrar el loading modal si isLoading es true
-        LoadingModal(isLoading = isLoading)
-    }
-
-
-    resultado?.let {
-        // Muestra el resultado o haz algo con él
-        Log.i("VERIFICACION", it)
-    }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@Composable
-fun LoginScreen2(navController: NavHostController) {
-
-    var telefono by remember { mutableStateOf("") }
-    var resultado by remember { mutableStateOf<String?>(null) }
-    var disposable: Disposable? = remember { null }
-
-    fun verificarTelefono(telefono: String) {
-
-
-        disposable = RetrofitBuilder.getApiService().verificarTelefono(telefono)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .retry(3)
-            .subscribe(
-                { response ->
-                    // Manejar respuesta exitosa
-                    resultado = "Verificación exitosa: ${response.success}"
-                    Log.i("VERIFICACION", resultado ?: "")
-                },
-                { error ->
-                    // Manejar error
-                    resultado = "Error: ${error.message}"
-                    Log.i("VERIFICACION", resultado ?: "")
-                }
-            )
-    }
-
-    // Limpia la suscripción cuando el composable se desmonta
-    DisposableEffect(Unit) {
-        onDispose {
-            disposable?.dispose()  // Limpiar la suscripción
+        if(isLoading){
+            LoadingModal(isLoading = isLoading)
         }
     }
 
 
 
-
-    var txtFieldNumero by remember { mutableStateOf("") }
-
-    val fontMonserratMedium = FontFamily(
-        Font(R.font.montserratmedium)
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(top = 25.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Imagen (logotipo)
-            Image(
-                painter = painterResource(id = R.drawable.logofinal),
-                contentDescription = stringResource(id = R.string.logo),
-                modifier = Modifier.size(199.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Texto (titulo)
-            Text(
-                text = stringResource(id = R.string.app_name), // Tu string aquí
-                fontSize = 27.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center, // Alinea el texto al centro horizontalmente
-                lineHeight = 40.sp,
-                fontFamily = fontMonserratMedium
-            )
-
-            Spacer(modifier = Modifier.height(20.dp)) // Espacio entre el título y el listado
-
-            BloqueTextFieldLogin(text = txtFieldNumero, onTextChanged = { newText ->
-                txtFieldNumero = newText
-            })
-
-            Spacer(modifier = Modifier.height(50.dp)) // Espacio antes del botón
-
-            // Botón de registro
-            Button(
-                onClick = {
-                    //verificarEntradas(txtFieldNumero)
-                            /*val telefono = "1234567890"
-                            val segundos = 30
-
-                            navController.navigate(Routes.VistaVerificarNumero.verificarNumeroConParametros(telefono, segundos)) {
-                                popUpTo(Routes.VistaLogin.route) { inclusive = false }
-                                launchSingleTop = true
-                            }*/
-
-                    verificarTelefono(telefono)
-
-
-
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-                    .padding(horizontal = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorAzulGob, // Color de fondo
-                    contentColor = ColorBlancoGob
-                ),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.verificar),
-                    fontSize = 18.sp,
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                )
+    resultado?.let { result ->
+        if (result.success == 1) {
+            // Número bloqueado
+            modalMessage = stringResource(id = R.string.numero_bloqueado)
+            showModal1Boton = true
+        } else {
+            // Mostrar segundos si existen
+            //Text(text = result.mensaje)
+            result.segundos?.let {
+                Text(text = "Segundos: $it")
             }
-
-            Spacer(modifier = Modifier.height(100.dp))
         }
     }
+
+    if (showModal1Boton) {
+        CustomModal1Boton(showDialog = showModal1Boton, message = modalMessage, onDismiss = { showModal1Boton = false })
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @Composable
 fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
@@ -496,29 +395,4 @@ fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
 
 
 
-@Composable
-fun LoadingModal(isLoading: Boolean) {
-    if (isLoading) {
-        Dialog(onDismissRequest = { /* Evitar que se cierre el modal */ }) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(160.dp)
-                    .background(Color.White, shape = RoundedCornerShape(16.dp))
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(color = ColorAzulGob)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Cargando..ffffffff.",
-                        fontSize = 18.sp,
-                        color = ColorNegroGob
-                    )
-                }
-            }
-        }
-    }
-}
+

@@ -3,16 +3,20 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.login
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,11 +29,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -48,10 +58,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -93,6 +105,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+
+import android.content.Context
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
+import es.dmoral.toasty.Toasty
 
 class SplashApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -168,11 +185,12 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     // MODAL
     var showModal1Boton by remember { mutableStateOf(false) }
     var modalMessage by remember { mutableStateOf("") }
-    val context = LocalContext.current
+    val ctx = LocalContext.current
 
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
     )
+
 
     Box(
         modifier = Modifier
@@ -225,22 +243,22 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             Button(
                 onClick = {
 
-                    Log.i("DATOSS", "es: $txtFieldNumero")
+                    CustomToasty(ctx, "todo biuen", ToastType.SUCCESS)
 
-                    when {
-                        txtFieldNumero.isBlank() -> {
-                            modalMessage = context.getString(R.string.telefono_es_requerido)
-                            showModal1Boton = true
-                        }
+                    /* when {
+                         txtFieldNumero.isBlank() -> {
+                             modalMessage = ctx.getString(R.string.telefono_es_requerido)
+                             showModal1Boton = true
+                         }
 
-                        txtFieldNumero.length < 8 -> { // VA SIN GUION
-                            modalMessage = context.getString(R.string.logo)
-                            showModal1Boton = true
-                        }
-                        else -> {
-                            viewModel.verificarTelefono()
-                        }
-                    }
+                         txtFieldNumero.length < 8 -> { // VA SIN GUION
+                             modalMessage = ctx.getString(R.string.logo)
+                             showModal1Boton = true
+                         }
+                         else -> {
+                             viewModel.verificarTelefono()
+                         }
+                     }*/
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -265,7 +283,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
         }
 
         // Mostrar el loading modal si isLoading es true
-        if(isLoading){
+        if (isLoading) {
             LoadingModal(isLoading = isLoading)
         }
     }
@@ -273,7 +291,9 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
 
 
     resultado?.let { result ->
+
         if (result.success == 1) {
+
             // Número bloqueado
             modalMessage = stringResource(id = R.string.numero_bloqueado)
             showModal1Boton = true
@@ -281,33 +301,11 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             // Mostrar segundos si existen
             //Text(text = result.mensaje)
             result.segundos?.let {
-                Text(text = "Segundos: $it")
+
             }
         }
     }
-
-    if (showModal1Boton) {
-        CustomModal1Boton(showDialog = showModal1Boton, message = modalMessage, onDismiss = { showModal1Boton = false })
-    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

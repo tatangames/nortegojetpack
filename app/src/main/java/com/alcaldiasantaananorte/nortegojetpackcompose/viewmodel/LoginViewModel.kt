@@ -103,41 +103,21 @@ class LoginViewModel : ViewModel() {
 
     fun verificarTelefono() {
 
-        val telefonoValue = _telefono.value
-        if (telefonoValue.isNullOrEmpty()) {
-            _resultado.value = ModeloVerificacion(success = 0)
-            return
-        }
-
         _isLoading.value = true  // Mostramos loading
-
+        Log.i("RESULTADO", "resultado 4")
         disposable = RetrofitBuilder.getApiService().verificarTelefono(_telefono.value!!)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .retry()
             .subscribe(
                 { response ->
-
                     _isLoading.value = false
-                    val success = response.success
-
-                    if(success == 1){
-
-                        // numero bloqueado
-
-                    }else{
-                        val segundos = response.segundos
-
-                        // Usas esos valores según sea necesario
-                       // _resultado.value = "Verificación exitosa: $success, Segundos: $segundos"
-                    }
-
-
-
+                    Log.i("RESULTADO", "resultado 10")
+                    _resultado.value = response
                 },
                 { error ->
-                    //_resultado.value = "Error: ${error.message}"
                     _isLoading.value = false  // Ocultamos loading
+                    Log.e("ERROR", "Error en la verificación del teléfono: ${error.message}")
                 }
             )
     }

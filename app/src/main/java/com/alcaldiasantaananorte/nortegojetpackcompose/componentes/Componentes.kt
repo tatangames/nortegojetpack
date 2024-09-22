@@ -1,9 +1,12 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.componentes
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +32,8 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
+import es.dmoral.toasty.Toasty
+
 
 @Composable
 fun LoadingModal(isLoading: Boolean) {
@@ -47,7 +52,7 @@ fun LoadingModal(isLoading: Boolean) {
                     CircularProgressIndicator(color = ColorAzulGob)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Cargando..ffffffff.",
+                        text = "Cargando...",
                         fontSize = 18.sp,
                         color = ColorNegroGob
                     )
@@ -92,5 +97,22 @@ fun CustomModal1Boton(showDialog: Boolean, message: String, onDismiss: () -> Uni
             }
         }
     }
+}
+
+
+fun CustomToasty(context: Context, message: String, type: ToastType) {
+    when (type) {
+        ToastType.SUCCESS -> Toasty.success(context, message, Toasty.LENGTH_SHORT, true).show()
+        ToastType.ERROR -> Toasty.error(context, message, Toasty.LENGTH_SHORT, true).show()
+        ToastType.INFO -> Toasty.info(context, message, Toasty.LENGTH_SHORT, true).show()
+        ToastType.WARNING -> Toasty.warning(context, message, Toasty.LENGTH_SHORT, true).show()
+    }
+}
+
+enum class ToastType {
+    SUCCESS,
+    ERROR,
+    INFO,
+    WARNING
 }
 

@@ -80,8 +80,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.2")
 
-
-
+    implementation("com.github.GrenderG:Toasty:1.5.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -57,19 +58,7 @@ fun VistaVerificarNumeroView(navController: NavHostController, telefono: String,
 
     var txtFieldCodigo by remember { mutableStateOf("") }
 
-    //BarraToolbar(navController)
-
-    Button(
-        onClick = {
-            /*navController.popBackStack(
-                route = Routes.VistaLogin.route,
-                inclusive = false
-            )*/
-        }
-    ) {
-        Text("Go Back to Login")
-    }
-
+    BarraToolbar(navController)
 
     /*Column(
         modifier = Modifier
@@ -183,6 +172,7 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraToolbar(navController: NavHostController){
+    var isNavigating by remember { mutableStateOf(false) }
 
     TopAppBar(
         title = {
@@ -192,7 +182,7 @@ fun BarraToolbar(navController: NavHostController){
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Título Centrado",
+                    text = "Títu",
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 )
@@ -202,7 +192,10 @@ fun BarraToolbar(navController: NavHostController){
         navigationIcon = {
             IconButton(onClick = {
 
-                navController.popBackStack()
+                if (!isNavigating) {
+                    isNavigating = true
+                    navController.popBackStack()
+                }
 
             },) {
                 Icon(
@@ -257,7 +250,39 @@ fun CountdownTimer(segundos: Int, onResendClick: () -> Unit) {
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BarraToolbar2(navController: NavHostController) {
 
+
+
+    TopAppBar(
+        title = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Pantalla 2.",
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        navigationIcon = {
+            androidx.compose.material.IconButton(onClick = {
+
+
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Volver a login "
+                )
+            }
+        },
+        modifier = Modifier.height(56.dp)
+    )
+}
 
 
 

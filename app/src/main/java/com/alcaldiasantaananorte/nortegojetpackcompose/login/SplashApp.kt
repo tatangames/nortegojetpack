@@ -131,273 +131,23 @@ class SplashApp : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.Pantalla1.route) {
+    NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
 
-        composable(Routes.Pantalla1.route) { Pantalla1(navController) }
-        composable(Routes.Pantalla2.route) {
-            Pantalla2(navController)
-        }
-
-        /* composable(Routes.VistaSplash.route) { SplashScreen(navController) }
+        composable(Routes.VistaSplash.route) { SplashScreen(navController) }
         composable(Routes.VistaLogin.route) { LoginScreen(navController) }
 
-
-        composable(Routes.Pantalla2.route) {
-            Pantalla2(navController)
-        }*/
-
-       /* composable(
-            route = Routes.VistaVerificarNumeroView.route,
-            arguments = listOf(
-                navArgument("telefono") { type = NavType.StringType },
-                navArgument("segundos") { type = NavType.IntType }
-            )
-        ) { backStackEntry ->
+        composable(Routes.VistaVerificarNumero.route) { backStackEntry ->
             val telefono = backStackEntry.arguments?.getString("telefono") ?: ""
             val segundos = backStackEntry.arguments?.getInt("segundos") ?: 0
-            VistaVerificarNumeroView(navController, telefono, segundos)
-        }*/
-
+            VistaVerificarNumeroView(navController = navController, telefono = telefono, segundos = segundos)
+        }
 
     }
 }
 
 
-
-
-
-
-@Composable
-fun Pantalla1(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
-    val telefono by viewModel.telefono.observeAsState("")
-    val resultado by viewModel.resultado.observeAsState()
-    val isLoading by viewModel.isLoading.observeAsState(false)
-    var txtFieldNumero by remember { mutableStateOf(telefono) }
-
-    // MODAL
-    var showModal1Boton by remember { mutableStateOf(false) }
-    var modalMessage by remember { mutableStateOf("") }
-    val ctx = LocalContext.current
-    val fontMonserratMedium = FontFamily(
-        Font(R.font.montserratmedium)
-    )
-
-
-    val navigateToPantalla2 = remember { mutableStateOf(false) }
-
-
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(top = 25.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Imagen (logotipo)
-            Image(
-                painter = painterResource(id = R.drawable.logofinal),
-                contentDescription = stringResource(id = R.string.logo),
-                modifier = Modifier.size(199.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Texto (titulo)
-            Text(
-                text = stringResource(id = R.string.app_name),
-                fontSize = 27.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                lineHeight = 40.sp,
-                fontFamily = fontMonserratMedium
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            BloqueTextFieldLogin(text = txtFieldNumero, onTextChanged = { newText ->
-                txtFieldNumero = newText
-                viewModel.setTelefono(newText)  // Actualiza el ViewModel
-            })
-
-            Spacer(modifier = Modifier.height(50.dp))
-
-            // Botón de registro
-            Button(
-                onClick = {
-
-                    // navController.navigate(Routes.Pantalla2.route)
-
-                    when {
-                        txtFieldNumero.isBlank() -> {
-                            modalMessage = ctx.getString(R.string.telefono_es_requerido)
-                            showModal1Boton = true
-                        }
-
-                        txtFieldNumero.length < 8 -> { // VA SIN GUION
-                            modalMessage = ctx.getString(R.string.logo)
-                            showModal1Boton = true
-                        }
-                        else -> {
-                            viewModel.verificarTelefono()
-                        }
-                    }
-
-
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-                    .padding(horizontal = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorAzulGob,
-                    contentColor = ColorBlancoGob
-                ),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.verificar),
-                    fontSize = 18.sp,
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(100.dp))
-        }
-
-        // Mostrar el loading modal si isLoading es true
-        if (isLoading) {
-            LoadingModal(isLoading = isLoading)
-        }
-    }
-
-
-    resultado?.let { result ->
-
-        when (result.success) {
-            1 -> {
-                // Número bloqueado
-                modalMessage = stringResource(id = R.string.numero_bloqueado)
-                showModal1Boton = true
-            }
-            2 -> {
-                CustomToasty(ctx, "entra", ToastType.INFO)
-                navigateToPantalla2.value = true
-                cambiar(navController, navigateToPantalla2)
-               // navController.navigate(Routes.Pantalla2.route)
-            }
-            else -> {
-                // Error, mostrar Toast
-                CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
-            }
-        }
-
-        Log.i("RESULTADO", "resultado es v1: " + result.success)
-    }
-
-
-}
-
-
-@Composable
-fun cambiar(navController: NavHostController, navigateToPantalla2: MutableState<Boolean>){
-    LaunchedEffect(Unit) {
-        navController.navigate("pantalla2")
-        navigateToPantalla2.value = false // Reinicia la navegación
-    }
-}
-
-
-
-
-
-@Composable
-fun Pantalla2(navController: NavHostController) {
-    Scaffold(
-        topBar = {
-            BarraToolbar2(navController)
-        },
-        content = { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Pantalla 222", fontSize = 24.sp)
-            }
-        }
-    )
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BarraToolbar2(navController: NavHostController) {
-
-    var isNavigating by remember { mutableStateOf(false) }
-
-    TopAppBar(
-        title = {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Pantalla 2.",
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        navigationIcon = {
-            IconButton (onClick = {
-                if (!isNavigating) {
-                    isNavigating = true
-                    navController.popBackStack()
-                    // Opcionalmente, resetea la bandera después de un delay
-                }
-
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Volver a login "
-                )
-            }
-        },
-        modifier = Modifier.height(56.dp)
-    )
-}
-
-
-
-
-
-
-
-
-
-/*
 @Composable
 fun SplashScreen(navController: NavHostController) {
-
     // Evitar que el usuario volver al splash con el botón atrás
     DisposableEffect(Unit) {
         onDispose {
@@ -427,9 +177,6 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
-*/
-
-/*
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
     val telefono by viewModel.telefono.observeAsState("")
@@ -439,7 +186,8 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
 
     // MODAL
     var showModal1Boton by remember { mutableStateOf(false) }
-    var modalMessage by remember { mutableStateOf("") }
+    var modalMensajeString by remember { mutableStateOf("") }
+
     val ctx = LocalContext.current
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
@@ -496,27 +244,20 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             Button(
                 onClick = {
 
-                   // navController.navigate(Routes.Pantalla2.route)
+                    when {
+                        txtFieldNumero.isBlank() -> {
+                            modalMensajeString = ctx.getString(R.string.telefono_es_requerido)
+                            showModal1Boton = true
+                        }
 
-                     when {
-                         txtFieldNumero.isBlank() -> {
-                             modalMessage = ctx.getString(R.string.telefono_es_requerido)
-                             showModal1Boton = true
-                         }
-
-                         txtFieldNumero.length < 8 -> { // VA SIN GUION
-                             modalMessage = ctx.getString(R.string.logo)
-                             showModal1Boton = true
-                         }
-                         else -> {
-                             viewModel.verificarTelefono()
-                         }
-                     }
-
-
-
-
-
+                        txtFieldNumero.length < 8 -> { // VA SIN GUION
+                            modalMensajeString = ctx.getString(R.string.telefono_es_requerido)
+                            showModal1Boton = true
+                        }
+                        else -> {
+                            viewModel.verificarTelefono()
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -540,40 +281,30 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             Spacer(modifier = Modifier.height(100.dp))
         }
 
-        // Mostrar el loading modal si isLoading es true
+        if(showModal1Boton){
+            CustomModal1Boton(showModal1Boton, modalMensajeString, onDismiss = {showModal1Boton = false})
+        }
+
         if (isLoading) {
             LoadingModal(isLoading = isLoading)
         }
     }
 
 
-
-
-    resultado?.let { result ->
-
+    resultado?.getContentIfNotHandled()?.let { result ->
         when (result.success) {
+
             1 -> {
                 // Número bloqueado
-                modalMessage = stringResource(id = R.string.numero_bloqueado)
+                modalMensajeString = stringResource(id = R.string.numero_bloqueado)
                 showModal1Boton = true
             }
             2 -> {
-                CustomToasty(ctx, "entra", ToastType.INFO)
-                val _segundos = result.segundos ?: 60 // defecto
+                val _segundos = result.segundos ?: 45 // defecto 45 segundos
 
-                //navController.navigate(Routes.Pantalla2.route)
-                LaunchedEffect(key1 = true) {
-                    //delay(2000)
-                    navController.navigate(Routes.Pantalla2.route)
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, _segundos))
                 }
-
-               /* navController.navigate(
-                    Routes.VistaVerificarNumeroView.verificarNumeroConParametros(txtFieldNumero, 3)
-                ) {
-                    popUpTo(Routes.VistaLogin.route) { inclusive = false }
-                    launchSingleTop = true
-                }
-*/
             }
             else -> {
                 // Error, mostrar Toast
@@ -584,10 +315,6 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
         Log.i("RESULTADO", "resultado es v1: " + result.success)
     }
 }
-*/
-
-
-
 
 @Composable
 fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {

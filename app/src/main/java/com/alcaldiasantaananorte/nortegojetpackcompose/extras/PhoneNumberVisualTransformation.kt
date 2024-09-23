@@ -31,3 +31,19 @@ class PhoneNumberVisualTransformation: VisualTransformation {
         return TransformedText(AnnotatedString(transformedText), offsetMapping)
     }
 }
+
+// UTILIZADO PARA EJECUTAR 1 VEZ LAS PETICIONES RETROFIT
+class Event<out T>(private val content: T) {
+    private var hasBeenHandled = false
+
+    fun getContentIfNotHandled(): T? {
+        return if (hasBeenHandled) {
+            null
+        } else {
+            hasBeenHandled = true
+            content
+        }
+    }
+
+    fun peekContent(): T = content
+}

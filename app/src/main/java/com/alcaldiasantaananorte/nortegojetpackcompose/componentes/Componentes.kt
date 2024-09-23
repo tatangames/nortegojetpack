@@ -100,6 +100,13 @@ fun CustomModal1Boton(showDialog: Boolean, message: String, onDismiss: () -> Uni
 }
 
 
+enum class ToastType {
+    SUCCESS,
+    ERROR,
+    INFO,
+    WARNING
+}
+
 fun CustomToasty(context: Context, message: String, type: ToastType) {
     when (type) {
         ToastType.SUCCESS -> Toasty.success(context, message, Toasty.LENGTH_SHORT, true).show()
@@ -109,10 +116,5 @@ fun CustomToasty(context: Context, message: String, type: ToastType) {
     }
 }
 
-enum class ToastType {
-    SUCCESS,
-    ERROR,
-    INFO,
-    WARNING
-}
+
 

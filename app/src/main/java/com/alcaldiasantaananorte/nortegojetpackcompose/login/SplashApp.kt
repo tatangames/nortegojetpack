@@ -97,16 +97,19 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris2Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 
 import android.content.Context
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.MutableState
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import es.dmoral.toasty.Toasty
@@ -122,15 +125,29 @@ class SplashApp : ComponentActivity() {
     }
 }
 
+
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.VistaSplash.route) {
-        composable(Routes.VistaSplash.route) { SplashScreen(navController) }
+    NavHost(navController = navController, startDestination = Routes.Pantalla1.route) {
+
+        composable(Routes.Pantalla1.route) { Pantalla1(navController) }
+        composable(Routes.Pantalla2.route) {
+            Pantalla2(navController)
+        }
+
+        /* composable(Routes.VistaSplash.route) { SplashScreen(navController) }
         composable(Routes.VistaLogin.route) { LoginScreen(navController) }
-        composable(
-            route = Routes.VistaVerificarNumero.route,
+
+
+        composable(Routes.Pantalla2.route) {
+            Pantalla2(navController)
+        }*/
+
+       /* composable(
+            route = Routes.VistaVerificarNumeroView.route,
             arguments = listOf(
                 navArgument("telefono") { type = NavType.StringType },
                 navArgument("segundos") { type = NavType.IntType }
@@ -138,45 +155,20 @@ fun AppNavigation() {
         ) { backStackEntry ->
             val telefono = backStackEntry.arguments?.getString("telefono") ?: ""
             val segundos = backStackEntry.arguments?.getInt("segundos") ?: 0
-            VistaVerificarNumero(navController, telefono, segundos)
-        }
+            VistaVerificarNumeroView(navController, telefono, segundos)
+        }*/
+
+
     }
 }
 
-@Composable
-fun SplashScreen(navController: NavHostController) {
 
-    // Evitar que el usuario volver al splash con el botón atrás
-    DisposableEffect(Unit) {
-        onDispose {
-            navController.popBackStack(Routes.VistaSplash.route, true)
-        }
-    }
 
-    // Control de la navegación tras un retraso
-    LaunchedEffect(key1 = true) {
-        delay(2000)
-        navController.navigate(Routes.VistaLogin.route) {
-            popUpTo(Routes.VistaSplash.route) { inclusive = true }
-        }
-    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logofinal), // Tu imagen aquí
-            contentDescription = stringResource(id = R.string.logo),
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.size(200.dp)
-        )
-    }
-}
+
 
 @Composable
-fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
+fun Pantalla1(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
     val telefono by viewModel.telefono.observeAsState("")
     val resultado by viewModel.resultado.observeAsState()
     val isLoading by viewModel.isLoading.observeAsState(false)
@@ -186,10 +178,14 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     var showModal1Boton by remember { mutableStateOf(false) }
     var modalMessage by remember { mutableStateOf("") }
     val ctx = LocalContext.current
-
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
     )
+
+
+    val navigateToPantalla2 = remember { mutableStateOf(false) }
+
+
 
 
     Box(
@@ -243,9 +239,266 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             Button(
                 onClick = {
 
-                    CustomToasty(ctx, "todo biuen", ToastType.SUCCESS)
+                    // navController.navigate(Routes.Pantalla2.route)
 
-                    /* when {
+                    when {
+                        txtFieldNumero.isBlank() -> {
+                            modalMessage = ctx.getString(R.string.telefono_es_requerido)
+                            showModal1Boton = true
+                        }
+
+                        txtFieldNumero.length < 8 -> { // VA SIN GUION
+                            modalMessage = ctx.getString(R.string.logo)
+                            showModal1Boton = true
+                        }
+                        else -> {
+                            viewModel.verificarTelefono()
+                        }
+                    }
+
+
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ColorAzulGob,
+                    contentColor = ColorBlancoGob
+                ),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.verificar),
+                    fontSize = 18.sp,
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+
+        // Mostrar el loading modal si isLoading es true
+        if (isLoading) {
+            LoadingModal(isLoading = isLoading)
+        }
+    }
+
+
+    resultado?.let { result ->
+
+        when (result.success) {
+            1 -> {
+                // Número bloqueado
+                modalMessage = stringResource(id = R.string.numero_bloqueado)
+                showModal1Boton = true
+            }
+            2 -> {
+                CustomToasty(ctx, "entra", ToastType.INFO)
+                navigateToPantalla2.value = true
+                cambiar(navController, navigateToPantalla2)
+               // navController.navigate(Routes.Pantalla2.route)
+            }
+            else -> {
+                // Error, mostrar Toast
+                CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
+            }
+        }
+
+        Log.i("RESULTADO", "resultado es v1: " + result.success)
+    }
+
+
+}
+
+
+@Composable
+fun cambiar(navController: NavHostController, navigateToPantalla2: MutableState<Boolean>){
+    LaunchedEffect(Unit) {
+        navController.navigate("pantalla2")
+        navigateToPantalla2.value = false // Reinicia la navegación
+    }
+}
+
+
+
+
+
+@Composable
+fun Pantalla2(navController: NavHostController) {
+    Scaffold(
+        topBar = {
+            BarraToolbar2(navController)
+        },
+        content = { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Pantalla 222", fontSize = 24.sp)
+            }
+        }
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BarraToolbar2(navController: NavHostController) {
+
+    var isNavigating by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Pantalla 2.",
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton (onClick = {
+                if (!isNavigating) {
+                    isNavigating = true
+                    navController.popBackStack()
+                    // Opcionalmente, resetea la bandera después de un delay
+                }
+
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Volver a login "
+                )
+            }
+        },
+        modifier = Modifier.height(56.dp)
+    )
+}
+
+
+
+
+
+
+
+
+
+/*
+@Composable
+fun SplashScreen(navController: NavHostController) {
+
+    // Evitar que el usuario volver al splash con el botón atrás
+    DisposableEffect(Unit) {
+        onDispose {
+            navController.popBackStack(Routes.VistaSplash.route, true)
+        }
+    }
+
+    // Control de la navegación tras un retraso
+    LaunchedEffect(key1 = true) {
+        delay(2000)
+        navController.navigate(Routes.VistaLogin.route) {
+            popUpTo(Routes.VistaSplash.route) { inclusive = true }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logofinal), // Tu imagen aquí
+            contentDescription = stringResource(id = R.string.logo),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(200.dp)
+        )
+    }
+}
+
+*/
+
+/*
+@Composable
+fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
+    val telefono by viewModel.telefono.observeAsState("")
+    val resultado by viewModel.resultado.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    var txtFieldNumero by remember { mutableStateOf(telefono) }
+
+    // MODAL
+    var showModal1Boton by remember { mutableStateOf(false) }
+    var modalMessage by remember { mutableStateOf("") }
+    val ctx = LocalContext.current
+    val fontMonserratMedium = FontFamily(
+        Font(R.font.montserratmedium)
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(top = 25.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Imagen (logotipo)
+            Image(
+                painter = painterResource(id = R.drawable.logofinal),
+                contentDescription = stringResource(id = R.string.logo),
+                modifier = Modifier.size(199.dp),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Texto (titulo)
+            Text(
+                text = stringResource(id = R.string.app_name),
+                fontSize = 27.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                lineHeight = 40.sp,
+                fontFamily = fontMonserratMedium
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            BloqueTextFieldLogin(text = txtFieldNumero, onTextChanged = { newText ->
+                txtFieldNumero = newText
+                viewModel.setTelefono(newText)  // Actualiza el ViewModel
+            })
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // Botón de registro
+            Button(
+                onClick = {
+
+                   // navController.navigate(Routes.Pantalla2.route)
+
+                     when {
                          txtFieldNumero.isBlank() -> {
                              modalMessage = ctx.getString(R.string.telefono_es_requerido)
                              showModal1Boton = true
@@ -258,7 +511,12 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                          else -> {
                              viewModel.verificarTelefono()
                          }
-                     }*/
+                     }
+
+
+
+
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -290,25 +548,43 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
 
 
 
+
     resultado?.let { result ->
 
-        if (result.success == 1) {
+        when (result.success) {
+            1 -> {
+                // Número bloqueado
+                modalMessage = stringResource(id = R.string.numero_bloqueado)
+                showModal1Boton = true
+            }
+            2 -> {
+                CustomToasty(ctx, "entra", ToastType.INFO)
+                val _segundos = result.segundos ?: 60 // defecto
 
-            // Número bloqueado
-            modalMessage = stringResource(id = R.string.numero_bloqueado)
-            showModal1Boton = true
-        } else {
-            // Mostrar segundos si existen
-            //Text(text = result.mensaje)
-            result.segundos?.let {
+                //navController.navigate(Routes.Pantalla2.route)
+                LaunchedEffect(key1 = true) {
+                    //delay(2000)
+                    navController.navigate(Routes.Pantalla2.route)
+                }
 
+               /* navController.navigate(
+                    Routes.VistaVerificarNumeroView.verificarNumeroConParametros(txtFieldNumero, 3)
+                ) {
+                    popUpTo(Routes.VistaLogin.route) { inclusive = false }
+                    launchSingleTop = true
+                }
+*/
+            }
+            else -> {
+                // Error, mostrar Toast
+                CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
             }
         }
+
+        Log.i("RESULTADO", "resultado es v1: " + result.success)
     }
 }
-
-
-
+*/
 
 
 

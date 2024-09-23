@@ -1,8 +1,7 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.network
 
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificacion
-import io.reactivex.Observable
-import io.reactivex.Single
+import io.reactivex.rxjava3.core.Single
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded

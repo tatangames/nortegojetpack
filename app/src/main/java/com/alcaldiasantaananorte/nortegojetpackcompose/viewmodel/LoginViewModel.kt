@@ -76,10 +76,9 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerific
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -100,24 +99,19 @@ class LoginViewModel : ViewModel() {
     fun setTelefono(telefono: String) {
         _telefono.value = telefono
     }
-
     fun verificarTelefono() {
 
-        _isLoading.value = true  // Mostramos loading
-        Log.i("RESULTADO", "resultado 4")
-        disposable = RetrofitBuilder.getApiService().verificarTelefono(_telefono.value!!)
+        _isLoading.value = true
+        disposable = RetrofitBuilder.getApiService().verificarTelefono("75825072")
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .retry()
             .subscribe(
                 { response ->
                     _isLoading.value = false
-                    Log.i("RESULTADO", "resultado 10")
                     _resultado.value = response
                 },
                 { error ->
-                    _isLoading.value = false  // Ocultamos loading
-                    Log.e("ERROR", "Error en la verificación del teléfono: ${error.message}")
+                    _isLoading.value = false
                 }
             )
     }

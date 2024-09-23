@@ -30,49 +30,48 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyDark
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun VistaVerificarNumero(navController: NavHostController, telefono: String, segundos: Int){
+fun VistaVerificarNumeroView(navController: NavHostController, telefono: String, segundos: Int){
 
     var txtFieldCodigo by remember { mutableStateOf("") }
 
-    BarraToolbar(navController)
+    //BarraToolbar(navController)
 
-    Column(
+    Button(
+        onClick = {
+            /*navController.popBackStack(
+                route = Routes.VistaLogin.route,
+                inclusive = false
+            )*/
+        }
+    ) {
+        Text("Go Back to Login")
+    }
+
+
+    /*Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
@@ -100,7 +99,6 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
 
         Spacer(modifier = Modifier.height(35.dp)) // Espacio entre la imagen y el TextField
 
-
         OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
             txtFieldCodigo = newText
         })
@@ -109,7 +107,10 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
 
         // Puedes agregar un botón para enviar el OTP
         Button(
-            onClick = { verificarCodigo(txtFieldCodigo) },
+            onClick = {
+
+
+                      },
             colors = ButtonDefaults.buttonColors(
                 containerColor = ColorAzulGob, // Color de fondo
                 contentColor = Color.White // Color del texto (puedes usar ColorTexto si lo defines)
@@ -123,13 +124,11 @@ fun VistaVerificarNumero(navController: NavHostController, telefono: String, seg
 
         Spacer(modifier = Modifier.height(35.dp))
 
-        CountdownTimer() {
+        CountdownTimer(segundos = 3) {
             // Acción cuando se presiona "Reenviar código"
             // Aquí puedes agregar la lógica para reenviar el código o hacer alguna otra acción
         }
-
-
-    }
+    }*/
 }
 
 
@@ -181,15 +180,10 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
 }
 
 
-fun verificarCodigo(codigo: String){
-    Log.i("CODIGO", "codigo es: " + codigo)
-}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraToolbar(navController: NavHostController){
-    var isBackButtonEnabled by remember { mutableStateOf(true) }
+
     TopAppBar(
         title = {
             // Usamos un Box para alinear el texto en el centro.
@@ -204,13 +198,13 @@ fun BarraToolbar(navController: NavHostController){
                 )
             }
         },
+
         navigationIcon = {
             IconButton(onClick = {
-                if (isBackButtonEnabled) {
-                    isBackButtonEnabled = false // Deshabilitar el botón
-                    navController.popBackStack()
-                }
-            }, enabled = isBackButtonEnabled ) {
+
+                navController.popBackStack()
+
+            },) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver"
@@ -227,8 +221,8 @@ fun BarraToolbar(navController: NavHostController){
 
 
 @Composable
-fun CountdownTimer(onResendClick: () -> Unit) {
-    var timerValue by remember { mutableStateOf(6) }
+fun CountdownTimer(segundos: Int, onResendClick: () -> Unit) {
+    var timerValue by remember { mutableStateOf(segundos) }
     var isCounting by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
 
@@ -250,7 +244,7 @@ fun CountdownTimer(onResendClick: () -> Unit) {
         } else {
             TextButton(
                 onClick = {
-                    timerValue = 30
+                    timerValue = 60 // Reiniciar el temporizador
                     isCounting = true
                     scope.launch { onResendClick() } // Acción al presionar "Reenviar código"
                 }
@@ -271,5 +265,5 @@ fun CountdownTimer(onResendClick: () -> Unit) {
 @Composable
 fun PreviewVistaVerificarNumero() {
     val navController = rememberNavController()
-    VistaVerificarNumero(navController, telefono = "+503 6666-6666", segundos = 20)
+    VistaVerificarNumeroView(navController, telefono = "+503 6666-6666", segundos = 20)
 }

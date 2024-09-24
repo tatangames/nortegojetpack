@@ -2,21 +2,15 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.login
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,18 +22,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -50,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,12 +41,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -73,46 +54,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
-import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
-import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomePage
-import com.alcaldiasantaananorte.nortegojetpackcompose.pruebas.HomeViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris2Gob
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
-
-
-import android.content.Context
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.MutableState
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import es.dmoral.toasty.Toasty
 
 class SplashApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,8 +81,6 @@ class SplashApp : ComponentActivity() {
     }
 }
 
-
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -138,13 +92,14 @@ fun AppNavigation() {
 
         composable(Routes.VistaVerificarNumero.route) { backStackEntry ->
             val telefono = backStackEntry.arguments?.getString("telefono") ?: ""
-            val segundos = backStackEntry.arguments?.getInt("segundos") ?: 0
+            val _segundos = backStackEntry.arguments?.getString("segundos") ?: "0"
+            val segundos = _segundos.toIntOrNull() ?: 0
+
             VistaVerificarNumeroView(navController = navController, telefono = telefono, segundos = segundos)
         }
 
     }
 }
-
 
 @Composable
 fun SplashScreen(navController: NavHostController) {
@@ -300,10 +255,10 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                 showModal1Boton = true
             }
             2 -> {
-                val _segundos = result.segundos ?: 45 // defecto 45 segundos
+                val segundos = (result.segundos ?: 60).toString() // 60 por defecto
 
                 LaunchedEffect(Unit) {
-                    navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, _segundos))
+                    navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, "5"))
                 }
             }
             else -> {
@@ -311,8 +266,6 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                 CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
             }
         }
-
-        Log.i("RESULTADO", "resultado es v1: " + result.success)
     }
 }
 

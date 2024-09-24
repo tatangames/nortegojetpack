@@ -2,6 +2,7 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.login
 
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,26 +18,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -45,22 +37,38 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ReintentoSMSViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun VistaVerificarNumeroView(navController: NavHostController, telefono: String, segundos: Int){
-
+fun VistaVerificarNumeroView(
+    navController: NavHostController,
+    telefono: String,
+    segundos: Int,
+    viewModel: ReintentoSMSViewModel = viewModel()
+) {
     var txtFieldCodigo by remember { mutableStateOf("") }
+
+    // Estado mutable para el temporizador
+    var tiempoRestante by remember { mutableStateOf(8) } // Valor inicial
+    var isCounting by remember { mutableStateOf(true) }
+
+    // Asignar el teléfono al ViewModel para la llamada
+    LaunchedEffect(telefono) {
+        viewModel.setTelefono(telefono)
+    }
 
     BarraToolbar(navController)
 
-    /*Column(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
@@ -68,25 +76,22 @@ fun VistaVerificarNumeroView(navController: NavHostController, telefono: String,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Imagen centrada
         Text(
             text = stringResource(R.string.codigo_mensaje, telefono),
             fontSize = 20.sp,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el texto y la imagen
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Imagen centrada debajo del texto
         Image(
-            painter = painterResource(id = R.drawable.charla), // Reemplaza con tu recurso de imagen
+            painter = painterResource(id = R.drawable.charla),
             contentDescription = stringResource(id = R.string.logo),
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(100.dp) // Tamaño de la imagen
+            modifier = Modifier.size(100.dp)
         )
 
-        Spacer(modifier = Modifier.height(35.dp)) // Espacio entre la imagen y el TextField
+        Spacer(modifier = Modifier.height(35.dp))
 
         OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
             txtFieldCodigo = newText
@@ -94,31 +99,156 @@ fun VistaVerificarNumeroView(navController: NavHostController, telefono: String,
 
         Spacer(modifier = Modifier.height(35.dp))
 
-        // Puedes agregar un botón para enviar el OTP
         Button(
             onClick = {
-
-
-                      },
+                // Acción para verificar el código
+            },
             colors = ButtonDefaults.buttonColors(
-                containerColor = ColorAzulGob, // Color de fondo
-                contentColor = Color.White // Color del texto (puedes usar ColorTexto si lo defines)
+                containerColor = ColorAzulGob,
+                contentColor = Color.White
             )
         ) {
             Text(
-                text = "Verificar",
-                style = TextStyle(fontSize = 16.sp) // Ajusta el tamaño de la fuente según sea necesario
+                text = stringResource(id = R.string.verificar),
+                style = TextStyle(fontSize = 16.sp)
             )
         }
 
         Spacer(modifier = Modifier.height(35.dp))
 
-        CountdownTimer(segundos = 3) {
-            // Acción cuando se presiona "Reenviar código"
-            // Aquí puedes agregar la lógica para reenviar el código o hacer alguna otra acción
+        // CountdownTimer
+        CountdownTimer(
+            segundos = tiempoRestante,
+            isCounting = isCounting,
+            onResendClick = {
+                // Llamada a la API cuando se presiona "Reenviar"
+                viewModel.reitentoSMSRetrofit()
+            }
+        )
+
+        // Mostrar modal de carga mientras se espera respuesta de la API
+        val isLoading by viewModel.isLoading.observeAsState(false)
+        if (isLoading) {
+            LoadingModal(isLoading = isLoading)
         }
-    }*/
+
+        // Observa el resultado de la API
+        val resultado by viewModel.resultado.observeAsState()
+        resultado?.getContentIfNotHandled()?.let { result ->
+            when (result.success) {
+                1 -> {
+                    // Número bloqueado
+                    Log.d("RESULTADO", "Número bloqueado.")
+                }
+                2 -> {
+                    // Código reenviado con éxito
+                    Log.d("RESULTADO", "Código reenviado con éxito.")
+                    // Reiniciar el temporizador
+                    tiempoRestante = 12 // Reiniciar el temporizador a 60
+                    isCounting = true    // Reinicia la cuenta regresiva
+                }
+                else -> {
+                    // Error al reenviar código
+                    Log.d("RESULTADO", "Error al reenviar código.")
+                }
+            }
+        }
+    }
 }
+
+@Composable
+fun CountdownTimer(
+    segundos: Int,
+    isCounting: Boolean,
+    onResendClick: () -> Unit
+) {
+    // Valor del temporizador, que se reinicia cuando cambia el número de segundos
+    var timerValue by remember { mutableStateOf(segundos) }
+
+    // Lanzar el temporizador solo si está contando
+    LaunchedEffect(isCounting) {
+        if (isCounting) {
+            timerValue = segundos // Reinicia el valor del temporizador
+            while (timerValue > 0) {
+                delay(1000L)
+                timerValue--
+            }
+            // Detiene la cuenta regresiva al llegar a cero
+        }
+    }
+
+    // Actualiza el estado de isCounting
+    LaunchedEffect(timerValue) {
+        if (timerValue == 0) {
+            onResendClick() // Llama a la función de reenviar al llegar a cero
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (timerValue > 0) {
+            Text(
+                text = "Reenviar en $timerValue s",
+                fontSize = 16.sp,
+                color = Color.Black
+            )
+        } else {
+            TextButton(onClick = onResendClick) {
+                Text(
+                    text = stringResource(id = R.string.reenviar_codigo),
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BarraToolbar(navController: NavHostController) {
+    var isNavigating by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            // Usamos un Box para alinear el texto en el centro.
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Títu",
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+
+        navigationIcon = {
+            IconButton(
+                onClick = {
+
+                    if (!isNavigating) {
+                        isNavigating = true
+                        navController.popBackStack()
+                    }
+
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver"
+                )
+            }
+        },
+        actions = {
+            // Puedes agregar acciones adicionales aquí
+        },
+        modifier = Modifier.height(56.dp)
+    )
+}
+
+
 
 
 @Composable
@@ -133,10 +263,10 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
             imeAction = ImeAction.Done // Para evitar el botón "Enter"
         ),
         keyboardActions = KeyboardActions(
-            onDone = {keyboardController?.hide() }
+            onDone = { keyboardController?.hide() }
         ),
         onValueChange = { newText ->
-            if (newText.length <= 6){
+            if (newText.length <= 6) {
                 onTextChanged(newText)
             }
         },
@@ -160,8 +290,12 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
                         style = MaterialTheme.typography.titleLarge
                     )
 
-                    Box(modifier = Modifier.width(40.dp).height(2.dp)
-                        .background(Color.Black))
+                    Box(
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(2.dp)
+                            .background(Color.Black)
+                    )
                 }
             }
         }
@@ -169,126 +303,13 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BarraToolbar(navController: NavHostController){
-    var isNavigating by remember { mutableStateOf(false) }
-
-    TopAppBar(
-        title = {
-            // Usamos un Box para alinear el texto en el centro.
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Títu",
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-
-        navigationIcon = {
-            IconButton(onClick = {
-
-                if (!isNavigating) {
-                    isNavigating = true
-                    navController.popBackStack()
-                }
-
-            },) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Volver"
-                )
-            }
-        },
-        actions = {
-            // Puedes agregar acciones adicionales aquí
-        },
-        modifier = Modifier.height(56.dp)
-    )
-}
 
 
 
-@Composable
-fun CountdownTimer(segundos: Int, onResendClick: () -> Unit) {
-    var timerValue by remember { mutableStateOf(segundos) }
-    var isCounting by remember { mutableStateOf(true) }
-    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(isCounting) {
-        if (isCounting) {
-            while (timerValue > 0) {
-                delay(1000L)
-                timerValue--
-            }
-            isCounting = false
-        }
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (isCounting) {
-            Text(text = "Reenviar en $timerValue s")
-        } else {
-            TextButton(
-                onClick = {
-                    timerValue = 60 // Reiniciar el temporizador
-                    isCounting = true
-                    scope.launch { onResendClick() } // Acción al presionar "Reenviar código"
-                }
-            ) {
-                Text(text = stringResource(id = R.string.reenviar_codigo),)
-            }
-        }
-    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BarraToolbar2(navController: NavHostController) {
-
-
-
-    TopAppBar(
-        title = {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Pantalla 2.",
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        navigationIcon = {
-            androidx.compose.material.IconButton(onClick = {
-
-
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Volver a login "
-                )
-            }
-        },
-        modifier = Modifier.height(56.dp)
-    )
-}
-
-
-
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun PreviewVistaVerificarNumero() {
     val navController = rememberNavController()
     VistaVerificarNumeroView(navController, telefono = "+503 6666-6666", segundos = 20)
-}
+}*/

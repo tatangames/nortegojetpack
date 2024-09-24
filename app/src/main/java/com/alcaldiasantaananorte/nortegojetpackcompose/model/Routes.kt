@@ -5,7 +5,7 @@ sealed class Routes(val route: String) {
     object VistaLogin:Routes("login")
 
     object VistaVerificarNumero: Routes("verificarNumero/{telefono}/{segundos}") {
-        fun createRoute(telefono: String, segundos: Int) = "verificarNumero/$telefono/$segundos"
+        fun createRoute(telefono: String, segundos: String) = "verificarNumero/$telefono/$segundos"
     }
 
 

@@ -4,7 +4,6 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.login
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -39,31 +38,29 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ReintentoSMSViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.VerificarCodigoViewModel
+
 
 @Composable
 fun VistaVerificarNumeroView(
     navController: NavHostController,
     telefono: String,
     segundos: Int,
-    viewModel: ReintentoSMSViewModel = viewModel()
+    viewModel: ReintentoSMSViewModel = viewModel(),
+    viewModelCodigo: VerificarCodigoViewModel = viewModel()
 ) {
     var txtFieldCodigo by remember { mutableStateOf("") }
-
-    // Estado mutable para el temporizador
-    var tiempoRestante by remember { mutableStateOf(8) } // Valor inicial
-    var isCounting by remember { mutableStateOf(true) }
+    val countdownViewModel = remember { CountdownViewModel() }
 
     // Asignar el teléfono al ViewModel para la llamada
     LaunchedEffect(telefono) {
         viewModel.setTelefono(telefono)
+        viewModelCodigo.setTelefono(telefono)
     }
 
     BarraToolbar(navController)
@@ -101,7 +98,7 @@ fun VistaVerificarNumeroView(
 
         Button(
             onClick = {
-                // Acción para verificar el código
+                // Lógica del botón de verificación
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = ColorAzulGob,
@@ -116,15 +113,11 @@ fun VistaVerificarNumeroView(
 
         Spacer(modifier = Modifier.height(35.dp))
 
-        // CountdownTimer
-        CountdownTimer(
-            segundos = tiempoRestante,
-            isCounting = isCounting,
-            onResendClick = {
-                // Llamada a la API cuando se presiona "Reenviar"
-                viewModel.reitentoSMSRetrofit()
-            }
-        )
+
+        // Mostrar el temporizador
+        CountdownTimer(countdownViewModel = countdownViewModel,
+            reintentoSMSViewModel = viewModel)
+
 
         // Mostrar modal de carga mientras se espera respuesta de la API
         val isLoading by viewModel.isLoading.observeAsState(false)
@@ -143,9 +136,8 @@ fun VistaVerificarNumeroView(
                 2 -> {
                     // Código reenviado con éxito
                     Log.d("RESULTADO", "Código reenviado con éxito.")
-                    // Reiniciar el temporizador
-                    tiempoRestante = 12 // Reiniciar el temporizador a 60
-                    isCounting = true    // Reinicia la cuenta regresiva
+                    countdownViewModel.resetTimer()
+
                 }
                 else -> {
                     // Error al reenviar código
@@ -153,55 +145,61 @@ fun VistaVerificarNumeroView(
                 }
             }
         }
+
+
+
+
+
     }
 }
+
 
 @Composable
 fun CountdownTimer(
-    segundos: Int,
-    isCounting: Boolean,
-    onResendClick: () -> Unit
+    countdownViewModel: CountdownViewModel,
+    reintentoSMSViewModel: ReintentoSMSViewModel // Pasar el ViewModel que maneja la lógica de la API
 ) {
-    // Valor del temporizador, que se reinicia cuando cambia el número de segundos
-    var timerValue by remember { mutableStateOf(segundos) }
-
-    // Lanzar el temporizador solo si está contando
-    LaunchedEffect(isCounting) {
-        if (isCounting) {
-            timerValue = segundos // Reinicia el valor del temporizador
-            while (timerValue > 0) {
-                delay(1000L)
-                timerValue--
-            }
-            // Detiene la cuenta regresiva al llegar a cero
-        }
-    }
-
-    // Actualiza el estado de isCounting
-    LaunchedEffect(timerValue) {
-        if (timerValue == 0) {
-            onResendClick() // Llama a la función de reenviar al llegar a cero
-        }
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (timerValue > 0) {
-            Text(
-                text = "Reenviar en $timerValue s",
-                fontSize = 16.sp,
-                color = Color.Black
-            )
+    Text(
+        text = if (countdownViewModel.timer > 0) {
+            "Reenviar en ${countdownViewModel.timer} segundos"
         } else {
-            TextButton(onClick = onResendClick) {
-                Text(
-                    text = stringResource(id = R.string.reenviar_codigo),
-                    fontSize = 16.sp,
-                    color = Color.Black
-                )
+            "Reenviar código"
+        },
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .clickable(enabled = countdownViewModel.timer == 0) {
+                // Acción al hacer clic en el texto
+                if (countdownViewModel.timer == 0) {
+                    // Reiniciar el contador
+
+                    Log.d("RESULTADO", "tocadoo")
+                    // Llamar al método del ViewModel para hacer la solicitud de reenvío
+                    reintentoSMSViewModel.reitentoSMSRetrofit()
+                }
+
+                Log.d("RESULTADO", "timer es: " + countdownViewModel.timer)
             }
-        }
-    }
+    )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)

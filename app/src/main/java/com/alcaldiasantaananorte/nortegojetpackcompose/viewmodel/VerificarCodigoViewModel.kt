@@ -4,18 +4,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.Event
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloReintentoSMS
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificarCodigo
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-class ReintentoSMSViewModel : ViewModel() {
+class VerificarCodigoViewModel : ViewModel() {
     private val _telefono = MutableLiveData<String>()
     val telefono: LiveData<String> get() = _telefono
 
-    private val _resultado = MutableLiveData<Event<ModeloReintentoSMS>>()
-    val resultado: LiveData<Event<ModeloReintentoSMS>> get() = _resultado
+    private val _codigo = MutableLiveData<String>()
+    val codigo: LiveData<String> get() = _codigo
+
+    private val _resultado = MutableLiveData<Event<ModeloVerificarCodigo>>()
+    val resultado: LiveData<Event<ModeloVerificarCodigo>> get() = _resultado
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
@@ -26,9 +29,9 @@ class ReintentoSMSViewModel : ViewModel() {
         _telefono.value = telefono
     }
 
-    fun reitentoSMSRetrofit() {
+    fun verificarCodigoRetrofit() {
         _isLoading.value = true
-        disposable = RetrofitBuilder.getApiService().reintentoSMS(_telefono.value!!)
+        disposable = RetrofitBuilder.getApiService().verificarCodigo(_telefono.value!!, _codigo.value!!)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .retry(3)

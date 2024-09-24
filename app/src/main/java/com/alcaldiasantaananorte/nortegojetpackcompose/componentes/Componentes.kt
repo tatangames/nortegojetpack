@@ -19,6 +19,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,11 +31,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
 import es.dmoral.toasty.Toasty
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -118,3 +126,32 @@ fun CustomToasty(context: Context, message: String, type: ToastType) {
 
 
 
+class CountdownViewModel : ViewModel() {
+    var timer by mutableStateOf(5)
+        private set
+
+    var isButtonEnabled by mutableStateOf(false)
+        private set
+
+    init {
+        startTimer()
+    }
+
+    // Función para iniciar el temporizador
+    private fun startTimer() {
+        viewModelScope.launch {
+            while (timer > 0) {
+                delay(1000L)
+                timer--
+            }
+            isButtonEnabled = true
+        }
+    }
+
+    // Función para reiniciar el temporizador
+    fun resetTimer() {
+        timer = 5
+        isButtonEnabled = false
+        startTimer()
+    }
+}

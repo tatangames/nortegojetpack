@@ -1,4 +1,4 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.login
+package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
 
 import android.util.Log
@@ -45,8 +45,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.VerificarCodigoViewModel
 
 
@@ -65,6 +67,24 @@ fun VistaVerificarNumeroView(
     // Mensajes de error y éxito predefinidos usando stringResource
     val msgCodigoRequerido = stringResource(id = R.string.codigo_requerido)
     val msgCodigoIncorrecto = stringResource(id = R.string.codigo_incorrecto)
+
+    // MODAL
+    var showModal1Boton by remember { mutableStateOf(false) }
+    var modalMensajeString by remember { mutableStateOf("") }
+
+    var id by remember { mutableStateOf("") }
+    var token by remember { mutableStateOf("") }
+
+    val tokenManager = remember { TokenManager(ctx) }
+    // Recoge los valores de DataStore
+    val storedId by tokenManager.userId.collectAsState(initial = "")
+    val storedToken by tokenManager.userToken.collectAsState(initial = "")
+
+    LaunchedEffect(Unit) {
+        // Cargar los valores almacenados al inicio
+        id = storedId
+        token = storedToken
+    }
 
     // Asignar el teléfono al ViewModel para la llamada
     LaunchedEffect(telefono) {
@@ -146,8 +166,7 @@ fun VistaVerificarNumeroView(
 
             CountdownTimer(
                 countdownViewModel = countdownViewModel,
-                reintentoSMSViewModel = viewModel,
-                initialSeconds = segundos
+                reintentoSMSViewModel = viewModel
             )
 
             val isLoadingSMS by viewModel.isLoading.observeAsState(false)
@@ -161,18 +180,26 @@ fun VistaVerificarNumeroView(
                 LoadingModal(isLoading = isLoadingCodigo)
             }
 
+
+            if(showModal1Boton){
+                CustomModal1Boton(showModal1Boton, modalMensajeString, onDismiss = {showModal1Boton = false})
+            }
+
+
             val resultadoSMS by viewModel.resultado.observeAsState()
             resultadoSMS?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
                     1 -> {
-                        Log.d("RESULTADO", "Número bloqueado.")
+                        // numero bloqueado
+                        modalMensajeString = stringResource(id = R.string.numero_bloqueado)
+                        showModal1Boton = true
                     }
                     2 -> {
-                        Log.d("RESULTADO", "Código reenviado con éxito.")
                         countdownViewModel.resetTimer()
                     }
                     else -> {
-                        Log.d("RESULTADO", "Error al reenviar código.")
+                        // Error, mostrar Toast
+                        CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
                     }
                 }
             }
@@ -181,7 +208,17 @@ fun VistaVerificarNumeroView(
             resultadoCodigo?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
                     1 -> {
-                        Log.d("RESULTADO", "Credenciales correctas")
+                        val _token = result.token ?: ""
+                        val _id = (result.id ?: 0).toString()
+
+                        // guardar credenciales
+                        // Usamos corutinas para guardar los datos
+                        LaunchedEffect(Unit) {
+                            tokenManager.guardarClienteID(_id)
+                            tokenManager.guardarClienteTOKEN(_token)
+                        }
+
+                        CustomToasty(ctx, "guardado", ToastType.INFO)
                     }
                     else -> {
                         CustomToasty(ctx, msgCodigoIncorrecto, ToastType.ERROR)
@@ -196,12 +233,8 @@ fun VistaVerificarNumeroView(
 @Composable
 fun CountdownTimer(
     countdownViewModel: CountdownViewModel,
-    reintentoSMSViewModel: ReintentoSMSViewModel, // Pasar el ViewModel que maneja la lógica de la API
-    initialSeconds: Int
+    reintentoSMSViewModel: ReintentoSMSViewModel // Pasar el ViewModel que maneja la lógica de la API
 ) {
-
-    // Establecer el valor inicial del temporizador en el ViewModel
-
 
     Text(
         text = if (countdownViewModel.timer > 0) {
@@ -214,14 +247,9 @@ fun CountdownTimer(
             .clickable(enabled = countdownViewModel.timer == 0) {
                 // Acción al hacer clic en el texto
                 if (countdownViewModel.timer == 0) {
-                    // Reiniciar el contador
-
-                    Log.d("RESULTADO", "tocadoo")
                     // Llamar al método del ViewModel para hacer la solicitud de reenvío
                     reintentoSMSViewModel.reitentoSMSRetrofit()
                 }
-
-                Log.d("RESULTADO", "timer es: " + countdownViewModel.timer)
             },
         style = TextStyle(
             fontSize = 15.sp, // Cambia el tamaño del texto a 18sp

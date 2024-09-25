@@ -11,13 +11,13 @@
     <string name="telefono_es_requerido">Teléfono es requerido</string>
     <string name="el_numero_telefono_introducido">El teléfono introducido es demasiado corto</string>
     <string name="nota">Nota</string>
-    <string name="verificar_el_numero_de_telefono">Verificar el número de teléfono.</string>
     <string name="numero_bloqueado">Número de teléfono bloqueado, contactar a la Administración</string>
     <string name="error_reintentar">Error, reintentar de nuevo</string>
     <string name="codigo_requerido">Código es requerido</string>
     <string name="codigo_incorrecto">Código incorrecto</string>
     <string name="volver">Volver</string>
-
+    <string name="cancelar">Cancelar</string>
+    <string name="verificar_numero_introducido">¿El número %s introducido es correcto?</string>
 
 
 

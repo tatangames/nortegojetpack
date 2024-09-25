@@ -1,7 +1,6 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.login
+package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -61,9 +60,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal2Botones
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.Routes
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
@@ -139,9 +139,13 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     val isLoading by viewModel.isLoading.observeAsState(false)
     var txtFieldNumero by remember { mutableStateOf(telefono) }
 
-    // MODAL
+    // MODAL 1 BOTON
     var showModal1Boton by remember { mutableStateOf(false) }
     var modalMensajeString by remember { mutableStateOf("") }
+
+    // MODAL 2 BOTON
+    var showModal2Boton by remember { mutableStateOf(false) }
+
 
     val ctx = LocalContext.current
     val fontMonserratMedium = FontFamily(
@@ -210,7 +214,8 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                             showModal1Boton = true
                         }
                         else -> {
-                            viewModel.verificarTelefono()
+                            // abrir modal para mostrarle al usuario si el numero es correcto
+                            showModal2Boton = true
                         }
                     }
                 },
@@ -243,8 +248,19 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
         if (isLoading) {
             LoadingModal(isLoading = isLoading)
         }
-    }
 
+        if(showModal2Boton){
+            CustomModal2Botones(
+                showDialog = true,
+                message = stringResource(id = R.string.verificar_numero_introducido, telefono),
+                onDismiss = { showModal2Boton = false },
+                onAccept = {
+                    showModal2Boton = false
+                    viewModel.verificarTelefono()
+                }
+            )
+        }
+    }
 
     resultado?.getContentIfNotHandled()?.let { result ->
         when (result.success) {

@@ -6,14 +6,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -37,6 +42,7 @@ import androidx.lifecycle.viewModelScope
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorNegroGob
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.delay
@@ -77,12 +83,12 @@ fun CustomModal1Boton(showDialog: Boolean, message: String, onDismiss: () -> Uni
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f) // Ajusta el ancho al 80% de la pantalla
+                    .fillMaxWidth() // Ajusta el ancho al 80% de la pantalla
                     .background(Color.White, shape = RoundedCornerShape(16.dp))
                     .padding(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp), // Agrega padding alrededor del contenido
+                    modifier = Modifier.padding(4.dp), // Agrega padding alrededor del contenido
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -108,6 +114,58 @@ fun CustomModal1Boton(showDialog: Boolean, message: String, onDismiss: () -> Uni
 }
 
 
+@Composable
+fun CustomModal2Botones(
+    showDialog: Boolean,
+    message: String,
+    onDismiss: () -> Unit,
+    onAccept: () -> Unit
+) {
+    if (showDialog) {
+        Dialog(onDismissRequest = { }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Color.White,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = message,
+                        fontSize = 18.sp,
+                        color = ColorNegroGob,
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        TextButton(onClick = onDismiss) {
+                            Text(stringResource(id = R.string.cancelar))
+                        }
+                        Button(
+                            onClick = onAccept,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            ),
+                        ) {
+                            Text(stringResource(id = R.string.verificar), color = Color.White)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 enum class ToastType {
     SUCCESS,
     ERROR,
@@ -123,7 +181,6 @@ fun CustomToasty(context: Context, message: String, type: ToastType) {
         ToastType.WARNING -> Toasty.warning(context, message, Toasty.LENGTH_SHORT, true).show()
     }
 }
-
 
 
 class CountdownViewModel : ViewModel() {

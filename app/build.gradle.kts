@@ -82,6 +82,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.7.2")
 
     implementation("com.github.GrenderG:Toasty:1.5.2")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

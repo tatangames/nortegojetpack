@@ -84,6 +84,11 @@ dependencies {
     implementation("com.github.GrenderG:Toasty:1.5.2")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    implementation("androidx.compose.material3:material3:1.3.0")
+    implementation("androidx.compose.foundation:foundation:1.3.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

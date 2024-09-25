@@ -8,5 +8,7 @@ sealed class Routes(val route: String) {
         fun createRoute(telefono: String, segundos: String) = "verificarNumero/$telefono/$segundos"
     }
 
+    object VistaPrincipal: Routes("principal")
 
+    object VistaSolicitudes: Routes("solicitudes")
 }

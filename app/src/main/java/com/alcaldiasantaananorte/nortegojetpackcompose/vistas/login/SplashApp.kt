@@ -1,6 +1,7 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +30,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +71,9 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.PrincipalScreen
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.vistassolicitudes.SolicitudesScreen
 
 class SplashApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,11 +103,19 @@ fun AppNavigation() {
             VistaVerificarNumeroView(navController = navController, telefono = telefono, segundos = segundos)
         }
 
+        composable(Routes.VistaPrincipal.route) { PrincipalScreen(navController) }
+        composable(Routes.VistaSolicitudes.route) { SolicitudesScreen(navController) }
     }
 }
 
 @Composable
 fun SplashScreen(navController: NavHostController) {
+
+    val ctx = LocalContext.current
+    var token by remember { mutableStateOf("") }
+    val tokenManager = remember { TokenManager(ctx) }
+    val storedToken by tokenManager.userToken.collectAsState(initial = "")
+
     // Evitar que el usuario volver al splash con el botón atrás
     DisposableEffect(Unit) {
         onDispose {
@@ -113,8 +126,17 @@ fun SplashScreen(navController: NavHostController) {
     // Control de la navegación tras un retraso
     LaunchedEffect(key1 = true) {
         delay(2000)
-        navController.navigate(Routes.VistaLogin.route) {
-            popUpTo(Routes.VistaSplash.route) { inclusive = true }
+
+        token = storedToken
+
+        if (token.isNotEmpty()) {
+            navController.navigate(Routes.VistaPrincipal.route) {
+                popUpTo(Routes.VistaSplash.route) { inclusive = true }
+            }
+        }else{
+            navController.navigate(Routes.VistaLogin.route) {
+                popUpTo(Routes.VistaSplash.route) { inclusive = true }
+            }
         }
     }
 
@@ -134,6 +156,8 @@ fun SplashScreen(navController: NavHostController) {
 
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
+
+    val ctx = LocalContext.current
     val telefono by viewModel.telefono.observeAsState("")
     val resultado by viewModel.resultado.observeAsState()
     val isLoading by viewModel.isLoading.observeAsState(false)
@@ -146,8 +170,6 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     // MODAL 2 BOTON
     var showModal2Boton by remember { mutableStateOf(false) }
 
-
-    val ctx = LocalContext.current
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
     )

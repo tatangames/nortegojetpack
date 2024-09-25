@@ -18,6 +18,10 @@
     <string name="volver">Volver</string>
     <string name="cancelar">Cancelar</string>
     <string name="verificar_numero_introducido">¿El número %s introducido es correcto?</string>
+    <string name="servicios">Servicios</string>
+    <string name="menu">Ménu</string>
+    <string name="solicitudes">Solicitudes</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
 
 
 

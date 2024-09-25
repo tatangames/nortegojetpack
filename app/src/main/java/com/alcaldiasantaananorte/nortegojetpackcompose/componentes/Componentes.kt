@@ -130,6 +130,10 @@ class CountdownViewModel : ViewModel() {
     var timer by mutableStateOf(5)
         private set
 
+    fun updateTimer(value: Int) {
+        timer = value
+    }
+
     var isButtonEnabled by mutableStateOf(false)
         private set
 
@@ -150,8 +154,10 @@ class CountdownViewModel : ViewModel() {
 
     // Función para reiniciar el temporizador
     fun resetTimer() {
-        timer = 5
+        timer = 60 // defecto al reiniciar
         isButtonEnabled = false
         startTimer()
     }
+
+
 }

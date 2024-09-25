@@ -29,6 +29,10 @@ class VerificarCodigoViewModel : ViewModel() {
         _telefono.value = telefono
     }
 
+    fun setCodigo(codigo: String) {
+        _codigo.value = codigo
+    }
+
     fun verificarCodigoRetrofit() {
         _isLoading.value = true
         disposable = RetrofitBuilder.getApiService().verificarCodigo(_telefono.value!!, _codigo.value!!)

@@ -42,7 +42,11 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ReintentoSMSViewModel
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.platform.LocalContext
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.VerificarCodigoViewModel
 
 
@@ -56,100 +60,135 @@ fun VistaVerificarNumeroView(
 ) {
     var txtFieldCodigo by remember { mutableStateOf("") }
     val countdownViewModel = remember { CountdownViewModel() }
+    val ctx = LocalContext.current
+
+    // Mensajes de error y éxito predefinidos usando stringResource
+    val msgCodigoRequerido = stringResource(id = R.string.codigo_requerido)
+    val msgCodigoIncorrecto = stringResource(id = R.string.codigo_incorrecto)
 
     // Asignar el teléfono al ViewModel para la llamada
     LaunchedEffect(telefono) {
         viewModel.setTelefono(telefono)
         viewModelCodigo.setTelefono(telefono)
+        countdownViewModel.updateTimer(value = segundos)
     }
 
-    BarraToolbar(navController)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = stringResource(R.string.codigo_mensaje, telefono),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.charla),
-            contentDescription = stringResource(id = R.string.logo),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(100.dp)
-        )
-
-        Spacer(modifier = Modifier.height(35.dp))
-
-        OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
-            txtFieldCodigo = newText
-        })
-
-        Spacer(modifier = Modifier.height(35.dp))
-
-        Button(
-            onClick = {
-                // Lógica del botón de verificación
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = ColorAzulGob,
-                contentColor = Color.White
-            )
+    // Estructura del Scaffold
+    Scaffold(
+        topBar = {
+            BarraToolbar(navController) // Incluir la barra superior aquí
+        }
+    ) { innerPadding ->
+        // Contenido del Scaffold
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Aplicar el padding proporcionado por el Scaffold
+                .imePadding()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top // Ajuste a la parte superior
         ) {
+            Spacer(modifier = Modifier.height(24.dp)) // Añade espacio adicional si es necesario
+
             Text(
-                text = stringResource(id = R.string.verificar),
-                style = TextStyle(fontSize = 16.sp)
+                text = stringResource(R.string.codigo_mensaje, telefono),
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
             )
-        }
 
-        Spacer(modifier = Modifier.height(35.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            Image(
+                painter = painterResource(id = R.drawable.charla),
+                contentDescription = stringResource(id = R.string.logo),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(100.dp)
+            )
 
-        // Mostrar el temporizador
-        CountdownTimer(countdownViewModel = countdownViewModel,
-            reintentoSMSViewModel = viewModel)
+            Spacer(modifier = Modifier.height(35.dp))
 
+            OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
+                txtFieldCodigo = newText
+                viewModelCodigo.setCodigo(newText)
+            })
 
-        // Mostrar modal de carga mientras se espera respuesta de la API
-        val isLoading by viewModel.isLoading.observeAsState(false)
-        if (isLoading) {
-            LoadingModal(isLoading = isLoading)
-        }
+            Spacer(modifier = Modifier.height(35.dp))
 
-        // Observa el resultado de la API
-        val resultado by viewModel.resultado.observeAsState()
-        resultado?.getContentIfNotHandled()?.let { result ->
-            when (result.success) {
-                1 -> {
-                    // Número bloqueado
-                    Log.d("RESULTADO", "Número bloqueado.")
+            Button(
+                onClick = {
+                    when {
+                        txtFieldCodigo.isBlank() -> {
+                            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
+                        }
+
+                        txtFieldCodigo.length < 6 -> {
+                            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
+                        }
+
+                        else -> {
+                            viewModelCodigo.verificarCodigoRetrofit()
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ColorAzulGob,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.verificar),
+                    style = TextStyle(fontSize = 16.sp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(35.dp))
+
+            CountdownTimer(
+                countdownViewModel = countdownViewModel,
+                reintentoSMSViewModel = viewModel,
+                initialSeconds = segundos
+            )
+
+            val isLoadingSMS by viewModel.isLoading.observeAsState(false)
+            val isLoadingCodigo by viewModelCodigo.isLoading.observeAsState(false)
+
+            if (isLoadingSMS) {
+                LoadingModal(isLoading = isLoadingSMS)
+            }
+
+            if (isLoadingCodigo) {
+                LoadingModal(isLoading = isLoadingCodigo)
+            }
+
+            val resultadoSMS by viewModel.resultado.observeAsState()
+            resultadoSMS?.getContentIfNotHandled()?.let { result ->
+                when (result.success) {
+                    1 -> {
+                        Log.d("RESULTADO", "Número bloqueado.")
+                    }
+                    2 -> {
+                        Log.d("RESULTADO", "Código reenviado con éxito.")
+                        countdownViewModel.resetTimer()
+                    }
+                    else -> {
+                        Log.d("RESULTADO", "Error al reenviar código.")
+                    }
                 }
-                2 -> {
-                    // Código reenviado con éxito
-                    Log.d("RESULTADO", "Código reenviado con éxito.")
-                    countdownViewModel.resetTimer()
+            }
 
-                }
-                else -> {
-                    // Error al reenviar código
-                    Log.d("RESULTADO", "Error al reenviar código.")
+            val resultadoCodigo by viewModelCodigo.resultado.observeAsState()
+            resultadoCodigo?.getContentIfNotHandled()?.let { result ->
+                when (result.success) {
+                    1 -> {
+                        Log.d("RESULTADO", "Credenciales correctas")
+                    }
+                    else -> {
+                        CustomToasty(ctx, msgCodigoIncorrecto, ToastType.ERROR)
+                    }
                 }
             }
         }
-
-
-
-
-
     }
 }
 
@@ -157,15 +196,19 @@ fun VistaVerificarNumeroView(
 @Composable
 fun CountdownTimer(
     countdownViewModel: CountdownViewModel,
-    reintentoSMSViewModel: ReintentoSMSViewModel // Pasar el ViewModel que maneja la lógica de la API
+    reintentoSMSViewModel: ReintentoSMSViewModel, // Pasar el ViewModel que maneja la lógica de la API
+    initialSeconds: Int
 ) {
+
+    // Establecer el valor inicial del temporizador en el ViewModel
+
+
     Text(
         text = if (countdownViewModel.timer > 0) {
-            "Reenviar en ${countdownViewModel.timer} segundos"
+            "Reintentar en ${countdownViewModel.timer} segundos"
         } else {
             "Reenviar código"
         },
-        style = MaterialTheme.typography.titleLarge,
         modifier = Modifier
             .padding(top = 16.dp)
             .clickable(enabled = countdownViewModel.timer == 0) {
@@ -179,27 +222,13 @@ fun CountdownTimer(
                 }
 
                 Log.d("RESULTADO", "timer es: " + countdownViewModel.timer)
-            }
+            },
+        style = TextStyle(
+            fontSize = 15.sp, // Cambia el tamaño del texto a 18sp
+            color = if (countdownViewModel.timer > 0) Color.Gray else Color.Black
+        )
     )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,7 +244,7 @@ fun BarraToolbar(navController: NavHostController) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Títu",
+                    text = "",
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 )
@@ -225,28 +254,25 @@ fun BarraToolbar(navController: NavHostController) {
         navigationIcon = {
             IconButton(
                 onClick = {
-
                     if (!isNavigating) {
                         isNavigating = true
                         navController.popBackStack()
                     }
-
                 },
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Volver"
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = stringResource(id = R.string.volver)
                 )
             }
         },
         actions = {
             // Puedes agregar acciones adicionales aquí
         },
+
         modifier = Modifier.height(56.dp)
     )
 }
-
-
 
 
 @Composable
@@ -299,10 +325,6 @@ fun OtpTextField(codigo: String, onTextChanged: (String) -> Unit) {
         }
     }
 }
-
-
-
-
 
 
 /*@Preview(showBackground = true)

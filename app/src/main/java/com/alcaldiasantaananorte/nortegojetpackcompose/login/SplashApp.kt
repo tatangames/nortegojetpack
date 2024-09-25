@@ -258,7 +258,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                 val segundos = (result.segundos ?: 60).toString() // 60 por defecto
 
                 LaunchedEffect(Unit) {
-                    navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, "5"))
+                    navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, segundos))
                 }
             }
             else -> {

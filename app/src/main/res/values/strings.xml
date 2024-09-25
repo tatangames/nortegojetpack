@@ -14,7 +14,9 @@
     <string name="verificar_el_numero_de_telefono">Verificar el número de teléfono.</string>
     <string name="numero_bloqueado">Número de teléfono bloqueado, contactar a la Administración</string>
     <string name="error_reintentar">Error, reintentar de nuevo</string>
-
+    <string name="codigo_requerido">Código es requerido</string>
+    <string name="codigo_incorrecto">Código incorrecto</string>
+    <string name="volver">Volver</string>
 
 
 

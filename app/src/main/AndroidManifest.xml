@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NorteGoJetpackCompose"
         android:usesCleartextTraffic="true"
+        android:screenOrientation="portrait"
         tools:targetApi="31">
         <activity
             android:name=".vistas.login.SplashApp"
@@ -27,6 +28,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
     </application>
 
 </manifest>

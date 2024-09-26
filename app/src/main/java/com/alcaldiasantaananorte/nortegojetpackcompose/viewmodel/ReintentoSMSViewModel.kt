@@ -12,7 +12,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 
 class ReintentoSMSViewModel : ViewModel() {
     private val _telefono = MutableLiveData<String>()
-    val telefono: LiveData<String> get() = _telefono
 
     private val _resultado = MutableLiveData<Event<ModeloReintentoSMS>>()
     val resultado: LiveData<Event<ModeloReintentoSMS>> get() = _resultado

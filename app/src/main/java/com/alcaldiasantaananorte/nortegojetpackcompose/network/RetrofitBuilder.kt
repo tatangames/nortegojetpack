@@ -10,19 +10,35 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitBuilder {
 
-    private const val BASE_URL = "http://192.168.1.29:8080/api/"
-    const val urlImagenes = "http://192.168.1.29:8080/storage/archivos/"
+   // private const val BASE_URL = "http://192.168.1.29:8080/api/"
+   // const val urlImagenes = "http://192.168.1.29:8080/storage/archivos/"
 
-   // private const val BASE_URL = "http://192.168.0.121:8080/api/"
-   // const val urlImagenes = "http://192.168.0.121:8080/storage/archivos/"
+    private const val BASE_URL = "http://192.168.0.121:8080/api/"
+    const val urlImagenes = "http://192.168.0.121:8080/storage/archivos/"
 
-    private val client: OkHttpClient = buildClient()
-    private val retrofit: Retrofit = buildRetrofit()
+    private var retrofit: Retrofit? = null
+    private var apiService: ApiService? = null
+    private var authenticatedApiService: ApiService? = null
 
-    // Instancia singleton de ApiService
-    private val apiService: ApiService = createServiceNoAuth(ApiService::class.java)
+    fun getApiService(): ApiService {
+        if (apiService == null) {
+            val client = buildClientNoAuth()
+            retrofit = buildRetrofit(client)
+            apiService = createService(ApiService::class.java)
+        }
+        return apiService!!
+    }
 
-    private fun buildClient(): OkHttpClient {
+    fun getAuthenticatedApiService(token: String): ApiService {
+        if (authenticatedApiService == null) {
+            val client = buildClientWithAuth(token)
+            retrofit = buildRetrofit(client)
+            authenticatedApiService = createService(ApiService::class.java)
+        }
+        return authenticatedApiService!!
+    }
+
+    private fun buildClientNoAuth(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request: Request = chain.request().newBuilder()
@@ -34,7 +50,21 @@ object RetrofitBuilder {
             .build()
     }
 
-    private fun buildRetrofit(): Retrofit {
+    private fun buildClientWithAuth(token: String): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val originalRequest = chain.request()
+                val requestBuilder = originalRequest.newBuilder()
+                    .header("Accept", "application/json")
+                    .header("Connection", "close")
+                    .header("Authorization", "Bearer $token")
+                val request = requestBuilder.build()
+                chain.proceed(request)
+            }
+            .build()
+    }
+
+    private fun buildRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
@@ -43,11 +73,7 @@ object RetrofitBuilder {
             .build()
     }
 
-    // Método reutilizable para crear servicios
-    private fun <T> createServiceNoAuth(service: Class<T>): T {
-        return retrofit.create(service)
+    private fun <T> createService(serviceClass: Class<T>): T {
+        return retrofit!!.create(serviceClass)
     }
-
-    // Exponer la instancia singleton del ApiService
-    fun getApiService(): ApiService = apiService
 }

@@ -89,6 +89,8 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation("com.google.accompanist:accompanist-pager:0.30.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.30.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

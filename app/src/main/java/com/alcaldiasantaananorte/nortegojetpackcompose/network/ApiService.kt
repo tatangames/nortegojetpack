@@ -1,5 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.network
 
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloReintentoSMS
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificarCodigo
@@ -28,6 +29,11 @@ interface ApiService {
     fun verificarCodigo(@Field("telefono") telefono: String,
                         @Field("codigo") codigo: String,
                         @Field("idonesignal") idonesignal: String? = null): Single<ModeloVerificarCodigo>
+
+    // LISTADO DE SERVICIOS
+    @POST("app/principal/listado")
+    @FormUrlEncoded
+    fun listadoServicios(@Field("id") idusuario: String): Single<ModeloListaServicios>
 }
 
 

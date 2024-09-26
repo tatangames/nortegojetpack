@@ -1,5 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -78,6 +79,10 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.vistassolicitudes.
 class SplashApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // MODO VERTICAL
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         enableEdgeToEdge()
         setContent {
             // INICIO DE APLICACION

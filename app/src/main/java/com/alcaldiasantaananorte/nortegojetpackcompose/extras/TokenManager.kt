@@ -41,7 +41,7 @@ class TokenManager(private val context: Context) {
         }
 
     // Obtener id desde DataStore
-    val idToken: Flow<String> = context.dataStore.data
+    val idUsuario: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[ID_KEY] ?: ""
         }

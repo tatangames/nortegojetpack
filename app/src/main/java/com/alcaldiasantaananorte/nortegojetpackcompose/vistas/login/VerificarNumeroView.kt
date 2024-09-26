@@ -51,7 +51,6 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.VerificarCodigoViewModel
 import kotlinx.coroutines.launch
 
-
 @Composable
 fun VistaVerificarNumeroView(
     navController: NavHostController,
@@ -74,7 +73,9 @@ fun VistaVerificarNumeroView(
 
     val tokenManager = remember { TokenManager(ctx) } // Recuerda inicializar el contexto
     val scope = rememberCoroutineScope()
-
+    val isLoadingSMS by viewModel.isLoading.observeAsState(false)
+    val isLoadingCodigo by viewModelCodigo.isLoading.observeAsState(false)
+    val resultadoSMS by viewModel.resultado.observeAsState()
 
     // Asignar el teléfono al ViewModel para la llamada
     LaunchedEffect(telefono) {
@@ -82,6 +83,8 @@ fun VistaVerificarNumeroView(
         viewModelCodigo.setTelefono(telefono)
         countdownViewModel.updateTimer(value = segundos)
     }
+
+
 
     // Estructura del Scaffold
     Scaffold(
@@ -159,9 +162,6 @@ fun VistaVerificarNumeroView(
                 reintentoSMSViewModel = viewModel
             )
 
-            val isLoadingSMS by viewModel.isLoading.observeAsState(false)
-            val isLoadingCodigo by viewModelCodigo.isLoading.observeAsState(false)
-
             if (isLoadingSMS) {
                 LoadingModal(isLoading = isLoadingSMS)
             }
@@ -176,7 +176,7 @@ fun VistaVerificarNumeroView(
             }
 
 
-            val resultadoSMS by viewModel.resultado.observeAsState()
+
             resultadoSMS?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
                     1 -> {
@@ -202,6 +202,7 @@ fun VistaVerificarNumeroView(
                         val _id = (result.id ?: 0).toString()
 
                         scope.launch {
+                            Log.d("RESULTADO", "token nuevo: $_token")
                             tokenManager.saveToken(_token)
                             tokenManager.saveID(_id)
 

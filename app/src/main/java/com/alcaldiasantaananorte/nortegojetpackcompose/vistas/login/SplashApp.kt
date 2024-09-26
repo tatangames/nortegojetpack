@@ -112,9 +112,8 @@ fun AppNavigation() {
 fun SplashScreen(navController: NavHostController) {
 
     val ctx = LocalContext.current
-    var token by remember { mutableStateOf("") }
     val tokenManager = remember { TokenManager(ctx) }
-    val storedToken by tokenManager.userToken.collectAsState(initial = "")
+    val token by tokenManager.userToken.collectAsState(initial = "")
 
     // Evitar que el usuario volver al splash con el botón atrás
     DisposableEffect(Unit) {
@@ -124,10 +123,8 @@ fun SplashScreen(navController: NavHostController) {
     }
 
     // Control de la navegación tras un retraso
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
         delay(2000)
-
-        token = storedToken
 
         if (token.isNotEmpty()) {
             navController.navigate(Routes.VistaPrincipal.route) {

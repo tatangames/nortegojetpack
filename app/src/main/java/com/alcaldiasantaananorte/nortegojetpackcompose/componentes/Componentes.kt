@@ -166,6 +166,66 @@ fun CustomModal2Botones(
 }
 
 
+@Composable
+fun CustomModalCerrarSesion(
+    showDialog: Boolean,
+    message: String,
+    onDismiss: () -> Unit,
+    onAccept: () -> Unit
+) {
+    if (showDialog) {
+        Dialog(onDismissRequest = { }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Color.White,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = message,
+                        fontSize = 18.sp,
+                        color = ColorNegroGob,
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = onDismiss,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorGris1Gob,
+                                contentColor = ColorBlancoGob
+                            ),
+                        ) {
+                            Text(stringResource(id = R.string.no), color = Color.White)
+                        }
+
+                        Button(
+                            onClick = onAccept,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            ),
+                        ) {
+                            Text(stringResource(id = R.string.si), color = Color.White)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
 enum class ToastType {
     SUCCESS,
     ERROR,

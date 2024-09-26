@@ -1,5 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ModalDrawer
@@ -27,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.res.stringResource
@@ -37,15 +40,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCerrarSesion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
@@ -53,15 +60,20 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login.LoginScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login.SplashScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login.VistaVerificarNumeroView
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.vistassolicitudes.SolicitudesScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrincipalScreen(navController: NavHostController) {
+    val ctx = LocalContext.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     var isNavigating by remember { mutableStateOf(false) }
+    var showModalCerrarSesion by remember { mutableStateOf(false) }
+
+    val tokenManager = remember { TokenManager(ctx) }
+    val scope = rememberCoroutineScope() // Crea el alcance de coroutine
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -76,8 +88,10 @@ fun PrincipalScreen(navController: NavHostController) {
                             1 -> {
                                 navController.navigate(Routes.VistaSolicitudes.route) // Navega a la pantalla de solicitudes
                             }
+
                             2 -> {
-                                navController.navigate(Routes.VistaSolicitudes.route)
+                                // cerrar sesion
+                                showModalCerrarSesion = true
                             }
                         }
 
@@ -112,8 +126,35 @@ fun PrincipalScreen(navController: NavHostController) {
                 )
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
                 // Aquí puedes colocar contenido principal, como una lista o algo que desees mostrar.
+            }
+
+            if (showModalCerrarSesion) {
+                CustomModalCerrarSesion(showModalCerrarSesion,
+                    stringResource(R.string.cerrar_sesion),
+                    onDismiss = { showModalCerrarSesion = false },
+                    onAccept = {
+                        scope.launch {
+                            // Llamamos a deletePreferences de manera segura dentro de una coroutine
+                            tokenManager.deletePreferences()
+
+                            // cerrar modal
+                            showModalCerrarSesion = false
+
+                            navController.navigate(Routes.VistaLogin.route) {
+                                popUpTo(Routes.VistaPrincipal.route) {
+                                    inclusive = true // Elimina VistaPrincipal de la pila
+                                }
+                                launchSingleTop =
+                                    true // Asegura que no se creen múltiples instancias de VistaLogin
+                            }
+                        }
+                    })
             }
         }
     }
@@ -122,20 +163,28 @@ fun PrincipalScreen(navController: NavHostController) {
 
 @Composable
 fun DrawerHeader() {
+
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setStatusBarColor(
+        Color.Transparent,
+        darkIcons = true
+    ) // Hace transparente la barra de estado
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp) // Altura fija
+            .height(200.dp)
+            .statusBarsPadding()
     ) {
-        // Imagen de fondo
         Image(
-            painter = painterResource(id = R.drawable.fondonorte), // Reemplaza con tu imagen
+            painter = painterResource(id = R.drawable.fondonorte),
             contentDescription = null,
-            contentScale = ContentScale.FillBounds, // Ajusta la imagen para que llene el espacio sin recortes
-            modifier = Modifier.fillMaxSize() // Ocupa todo el espacio del Box
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
+
 
 @Composable
 fun DrawerBody(
@@ -146,7 +195,14 @@ fun DrawerBody(
         items.forEach { item ->
             NavigationDrawerItem(
                 icon = { Icon(item.icon, contentDescription = null) },
-                label = { Text(stringResource(id = item.idString)) },
+                label = {
+                    Text(
+                        stringResource(id = item.idString),
+                        fontSize = 16.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
                 selected = false,
                 onClick = { onItemClick(item) },
                 modifier = Modifier.padding(horizontal = 12.dp)

@@ -88,6 +88,7 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.3.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,7 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.extras
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -14,41 +13,44 @@ val Context.dataStore by preferencesDataStore(name = "user_prefs")
 
 class TokenManager(private val context: Context) {
 
-    companion object {
-        val USER_ID_KEY = stringPreferencesKey("USER_ID")
-        val USER_TOKEN_KEY = stringPreferencesKey("USER_TOKEN")
-    }
+    // Clave para almacenar el token
+    private val TOKEN_KEY = stringPreferencesKey("user_token")
 
-    // Guardar el ID del usuario
-    suspend fun guardarClienteID(id: String) {
-        context.dataStore.edit { prefs ->
-            prefs[USER_ID_KEY] = id
+    // Clave para almacenar el id
+    private val ID_KEY = stringPreferencesKey("user_id")
+
+
+    // Guardar token en DataStore
+    suspend fun saveToken(token: String) {
+        context.dataStore.edit { preferences ->
+            preferences[TOKEN_KEY] = token
         }
     }
 
-    // Guardar el token de seguridad
-    suspend fun guardarClienteTOKEN(token: String) {
-        context.dataStore.edit { prefs ->
-            prefs[USER_TOKEN_KEY] = token
+    // Guardar el id
+    suspend fun saveID(id: String) {
+        context.dataStore.edit { preferences ->
+            preferences[ID_KEY] = id
         }
     }
 
-    // Borrar datos almacenados
-    suspend fun deletePreferences() {
-        context.dataStore.edit { prefs ->
-            prefs.remove(USER_ID_KEY)
-            prefs.remove(USER_TOKEN_KEY)
-        }
-    }
-
-    // Obtener los datos almacenados como Flow
-    val userId: Flow<String> = context.dataStore.data
-        .map { prefs ->
-            prefs[USER_ID_KEY] ?: ""
-        }
-
+    // Obtener token desde DataStore
     val userToken: Flow<String> = context.dataStore.data
-        .map { prefs ->
-            prefs[USER_TOKEN_KEY] ?: ""
+        .map { preferences ->
+            preferences[TOKEN_KEY] ?: ""
         }
+
+    // Obtener id desde DataStore
+    val idToken: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[ID_KEY] ?: ""
+        }
+
+    // Borrar token (Cierre de sesión)
+    suspend fun deletePreferences() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(TOKEN_KEY)
+            preferences.remove(ID_KEY)
+        }
+    }
 }

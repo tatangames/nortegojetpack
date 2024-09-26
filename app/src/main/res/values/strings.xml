@@ -22,8 +22,8 @@
     <string name="menu">Ménu</string>
     <string name="solicitudes">Solicitudes</string>
     <string name="cerrar_sesion">Cerrar sesión</string>
-
-
+    <string name="si">Sí</string>
+    <string name="no">No</string>
 
 
 </resources>

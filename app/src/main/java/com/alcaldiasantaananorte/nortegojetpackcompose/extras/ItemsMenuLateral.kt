@@ -1,12 +1,13 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.extras
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.RealEstateAgent
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 
 sealed class ItemsMenuLateral(
     val icon: ImageVector,
@@ -14,13 +15,13 @@ sealed class ItemsMenuLateral(
     val id: Int
 ) {
     object ItemMenu1 : ItemsMenuLateral(
-        Icons.Outlined.RealEstateAgent,
+        Icons.AutoMirrored.Filled.List,
         R.string.solicitudes,
         1
     )
 
     object ItemMenu2 : ItemsMenuLateral(
-        Icons.Outlined.Home,
+        Icons.AutoMirrored.Filled.Logout,
         R.string.cerrar_sesion,
         2
     )

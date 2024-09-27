@@ -7,8 +7,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -57,6 +62,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCerrarSesion
@@ -67,15 +75,20 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
+import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ServiciosViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrincipalScreen(navController: NavHostController, viewModel: ServiciosViewModel = viewModel(),) {
+fun PrincipalScreen(
+    navController: NavHostController,
+    viewModel: ServiciosViewModel = viewModel(),
+) {
     val ctx = LocalContext.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var isNavigating by remember { mutableStateOf(false) }
@@ -86,8 +99,7 @@ fun PrincipalScreen(navController: NavHostController, viewModel: ServiciosViewMo
     val resultado by viewModel.resultado.observeAsState()
     val scope = rememberCoroutineScope() // Crea el alcance de coroutine
 
-
-
+    var imageUrls by remember { mutableStateOf(listOf<String>()) }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -156,13 +168,94 @@ fun PrincipalScreen(navController: NavHostController, viewModel: ServiciosViewMo
                 // Aquí puedes colocar contenido principal, como una lista o algo que desees mostrar.
 
 
-                val images = listOf(
-                    R.drawable.logofinal,
-                    R.drawable.charla,
-                    R.drawable.camarafoto
-                )
+                if (imageUrls.isNotEmpty()) {
 
-                ImageSlider(images)
+                    val pagerState = rememberPagerState(pageCount = { imageUrls.size })
+                    val coroutineScope = rememberCoroutineScope()
+                    var lastInteractionTime by remember { mutableStateOf(0L) }
+
+                    // Función para cambiar la página automáticamente
+                    fun autoChangePage() {
+                        coroutineScope.launch {
+                            val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                            pagerState.animateScrollToPage(nextPage)
+                        }
+                    }
+
+                    // Efecto para el auto-scroll
+                    LaunchedEffect(pagerState) {
+                        while (true) {
+                            delay(3000)
+                            if (System.currentTimeMillis() - lastInteractionTime > 3000) {
+                                autoChangePage()
+                            }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            pageSpacing = 0.dp,
+                            contentPadding = PaddingValues(0.dp)
+                        ) { page ->
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+
+                                Log.d("RESULTADO", imageUrls[page])
+
+
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(imageUrls[page])
+                                        .crossfade(true)
+                                        .placeholder(R.drawable.spinloading)
+                                        .error(R.drawable.errorcamara)
+                                        .build(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(16f / 9f),
+                                    contentScale = ContentScale.Inside
+                                )
+                            }
+                        }
+
+                        // Indicadores de página
+                        Row(
+                            Modifier
+                                .height(50.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(pagerState.pageCount) { iteration ->
+                                val color =
+                                    if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                                Box(
+                                    modifier = Modifier
+                                        .padding(2.dp)
+                                        .clip(CircleShape)
+                                        .background(color)
+                                        .size(8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Detectar interacción del usuario
+                    LaunchedEffect(pagerState) {
+                        snapshotFlow { pagerState.currentPage }.collect { page ->
+                            lastInteractionTime = System.currentTimeMillis()
+                        }
+                    }
+                }
 
 
             }
@@ -184,14 +277,17 @@ fun PrincipalScreen(navController: NavHostController, viewModel: ServiciosViewMo
                     })
             }
 
-            if(showModal1Boton){
-                CustomModal1Boton(showModal1Boton, stringResource(R.string.numero_bloqueado), onDismiss = {
-                    scope.launch {
-                        tokenManager.deletePreferences()
-                        showModal1Boton = false
-                        navigateToLogin(navController)
-                    }
-                })
+            if (showModal1Boton) {
+                CustomModal1Boton(
+                    showModal1Boton,
+                    stringResource(R.string.numero_bloqueado),
+                    onDismiss = {
+                        scope.launch {
+                            tokenManager.deletePreferences()
+                            showModal1Boton = false
+                            navigateToLogin(navController)
+                        }
+                    })
             }
 
             if (isLoading) {
@@ -203,43 +299,25 @@ fun PrincipalScreen(navController: NavHostController, viewModel: ServiciosViewMo
             when (result.success) {
 
                 2 -> {
-
+                    imageUrls = result.slider.map { sliderItem ->
+                        // Construir la URL completa de la imagen
+                        "${RetrofitBuilder.urlImagenes}${sliderItem.imagen}"
+                    }
                 }
+
                 else -> {
                     // Error, mostrar Toast
-                    CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)
+                    CustomToasty(
+                        ctx,
+                        stringResource(id = R.string.error_reintentar),
+                        ToastType.ERROR
+                    )
                 }
             }
         }
     }
 }
 
-
-
-
-@Composable
-fun ImageSlider(images: List<Int>) {
-    val pagerState = rememberPagerState(pageCount = { images.size })
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .height(200.dp) // Establece la altura a 200dp
-                .fillMaxWidth(), // Ocupa todo el ancho disponible
-            pageSpacing = 16.dp // Espacio opcional entre páginas
-        ) { page ->
-            Image(
-                painter = painterResource(id = images[page]),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-}
 
 // redireccionar a vista login
 private fun navigateToLogin(navController: NavHostController) {

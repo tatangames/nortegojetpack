@@ -24,6 +24,16 @@
     <string name="cerrar_sesion">Cerrar sesión</string>
     <string name="si">Sí</string>
     <string name="no">No</string>
+    <string name="no_hay_solicitudes_realizadas">No hay Solicitudes realizadas</string>
+    <string name="solicitud_dospuntos">Solicitud: </string>
+    <string name="estado_dospuntos">Estado: </string>
+    <string name="fecha_dospuntos">Fecha: </string>
+    <string name="nombre_dospuntos">Nombre: </string>
+    <string name="nota_dospuntos">Nota: </string>
+    <string name="telefono_dospuntos">Teléfono: </string>
+    <string name="direccion_dospuntos">Dirección: </string>
+
+
 
 
 </resources>

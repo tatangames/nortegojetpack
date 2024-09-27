@@ -42,6 +42,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ReintentoSMSVie
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
@@ -89,7 +90,7 @@ fun VistaVerificarNumeroView(
     // Estructura del Scaffold
     Scaffold(
         topBar = {
-            BarraToolbar(navController) // Incluir la barra superior aquí
+            BarraToolbar(navController, "")
         }
     ) { innerPadding ->
         // Contenido del Scaffold
@@ -202,7 +203,6 @@ fun VistaVerificarNumeroView(
                         val _id = (result.id ?: 0).toString()
 
                         scope.launch {
-                            Log.d("RESULTADO", "token nuevo: $_token")
                             tokenManager.saveToken(_token)
                             tokenManager.saveID(_id)
 
@@ -255,7 +255,7 @@ fun CountdownTimer(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarraToolbar(navController: NavHostController) {
+fun BarraToolbar(navController: NavController, titulo: String) {
     var isNavigating by remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -266,7 +266,7 @@ fun BarraToolbar(navController: NavHostController) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "",
+                    text = titulo,
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 )

@@ -2,7 +2,6 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -74,7 +73,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.PrincipalScreen
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.vistassolicitudes.SolicitudesScreen
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudesScreen
 
 class SplashApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

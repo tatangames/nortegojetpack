@@ -207,10 +207,6 @@ fun PrincipalScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-
-                                Log.d("RESULTADO", imageUrls[page])
-
-
                                 AsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(imageUrls[page])
@@ -293,7 +289,7 @@ fun PrincipalScreen(
             if (isLoading) {
                 LoadingModal(isLoading = isLoading)
             }
-        }
+        } // end-sscalfold
 
         resultado?.getContentIfNotHandled()?.let { result ->
             when (result.success) {

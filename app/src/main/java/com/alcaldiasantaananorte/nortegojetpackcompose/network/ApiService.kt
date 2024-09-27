@@ -2,13 +2,12 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.network
 
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloReintentoSMS
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloSolicitudes
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerificarCodigo
 import io.reactivex.rxjava3.core.Single
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface ApiService {
@@ -34,6 +33,11 @@ interface ApiService {
     @POST("app/principal/listado")
     @FormUrlEncoded
     fun listadoServicios(@Field("id") idusuario: String): Single<ModeloListaServicios>
+
+    // LISTADO DE SOLICITUDES
+    @POST("app/solicitudes/listado")
+    @FormUrlEncoded
+    fun listadoSolicitudes(@Field("iduser") idusuario: String): Single<ModeloSolicitudes>
 }
 
 

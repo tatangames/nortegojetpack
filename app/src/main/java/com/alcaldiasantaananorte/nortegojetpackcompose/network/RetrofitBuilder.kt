@@ -8,11 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitBuilder {
 
-   // private const val BASE_URL = "http://192.168.1.29:8080/api/"
-   // const val urlImagenes = "http://192.168.1.29:8080/storage/archivos/"
+    private const val BASE_URL = "http://192.168.1.29:8080/api/"
+    const val urlImagenes = "http://192.168.1.29:8080/storage/archivos/"
 
-    private const val BASE_URL = "http://192.168.0.121:8080/api/"
-    const val urlImagenes = "http://192.168.0.121:8080/storage/archivos/"
+   // private const val BASE_URL = "http://192.168.0.121:8080/api/"
+   // const val urlImagenes = "http://192.168.0.121:8080/storage/archivos/"
 
     private var retrofit: Retrofit? = null
     private var apiService: ApiService? = null

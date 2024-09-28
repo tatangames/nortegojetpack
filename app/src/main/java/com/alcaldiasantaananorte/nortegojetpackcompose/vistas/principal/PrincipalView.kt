@@ -51,19 +51,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
@@ -143,7 +137,11 @@ fun PrincipalScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(stringResource(R.string.servicios), color = Color.White)
+                        Text(
+                            stringResource(R.string.servicios),
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
                     },
                     navigationIcon = {
                         IconButton(onClick = {

@@ -42,3 +42,37 @@ class SolicitudesViewModel() : ViewModel() {
         disposable?.dispose() // Limpiar la suscripción
     }
 }
+
+
+class SolicitudesOcultarViewModel() : ViewModel() {
+
+    private val _resultado = MutableLiveData<Event<ModeloSolicitudes>>()
+    val resultado: LiveData<Event<ModeloSolicitudes>> get() = _resultado
+
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
+    private var disposable: Disposable? = null
+
+    fun solicitudesOcultarRetrofit(token: String, id: Int, tipo: Int) {
+        _isLoading.value = true
+        disposable = RetrofitBuilder.getAuthenticatedApiService(token).ocultarSolicitudes(id, tipo)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .retry()
+            .subscribe(
+                { response ->
+                    _isLoading.value = false
+                    _resultado.value = Event(response)
+                },
+                { error ->
+                    _isLoading.value = false
+                }
+            )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable?.dispose() // Limpiar la suscripción
+    }
+}

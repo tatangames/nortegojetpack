@@ -38,6 +38,11 @@ interface ApiService {
     @POST("app/solicitudes/listado")
     @FormUrlEncoded
     fun listadoSolicitudes(@Field("iduser") idusuario: String): Single<ModeloSolicitudes>
+
+    // OCULTAR SOLICITUDES
+    @POST("app/solicitudes/ocultar")
+    @FormUrlEncoded
+    fun ocultarSolicitudes(@Field("id") id: Int, @Field("tipo") tipo: Int): Single<ModeloSolicitudes>
 }
 
 

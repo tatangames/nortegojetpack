@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +16,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -55,6 +63,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -68,8 +77,13 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ListaServicio
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ServiciosViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
@@ -94,6 +108,10 @@ fun PrincipalScreen(
     val scope = rememberCoroutineScope() // Crea el alcance de coroutine
 
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
+    var modeloListaServicios by remember { mutableStateOf(listOf<TipoServicio>()) }
+
+
+
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -133,6 +151,9 @@ fun PrincipalScreen(
             }
         }
     ) {
+
+
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -144,9 +165,7 @@ fun PrincipalScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = null, tint = Color.White)
                         }
                     },
@@ -158,136 +177,109 @@ fun PrincipalScreen(
                 )
             }
         ) { innerPadding ->
-            Box(
+            LazyColumn(
                 modifier = Modifier
-                    .padding(innerPadding)
                     .fillMaxSize()
+                    .padding(innerPadding)
             ) {
-                // Aquí puedes colocar contenido principal, como una lista o algo que desees mostrar.
-
-
+                // Sección para el HorizontalPager
                 if (imageUrls.isNotEmpty()) {
-
-                    val pagerState = rememberPagerState(pageCount = { imageUrls.size })
-                    val coroutineScope = rememberCoroutineScope()
-                    var lastInteractionTime by remember { mutableStateOf(0L) }
-
-                    // Función para cambiar la página automáticamente
-                    fun autoChangePage() {
-                        coroutineScope.launch {
-                            val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
-                            pagerState.animateScrollToPage(nextPage)
-                        }
-                    }
-
-                    // Efecto para el auto-scroll
-                    LaunchedEffect(pagerState) {
-                        while (true) {
-                            delay(3000)
-                            if (System.currentTimeMillis() - lastInteractionTime > 3000) {
-                                autoChangePage()
-                            }
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            pageSpacing = 0.dp,
-                            contentPadding = PaddingValues(0.dp)
-                        ) { page ->
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(imageUrls[page])
-                                        .crossfade(true)
-                                        .placeholder(R.drawable.spinloading)
-                                        .error(R.drawable.errorcamara)
-                                        .build(),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(16f / 9f),
-                                    contentScale = ContentScale.Inside
-                                )
-                            }
-                        }
-
-                        // Indicadores de página
-                        Row(
-                            Modifier
-                                .height(50.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            repeat(pagerState.pageCount) { iteration ->
-                                val color =
-                                    if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                    item {
+                        val pagerState = rememberPagerState(pageCount = { imageUrls.size })
+                        Column {
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                            ) { page ->
                                 Box(
-                                    modifier = Modifier
-                                        .padding(2.dp)
-                                        .clip(CircleShape)
-                                        .background(color)
-                                        .size(8.dp)
-                                )
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(imageUrls[page])
+                                            .crossfade(true)
+                                            .placeholder(R.drawable.spinloading)
+                                            .error(R.drawable.errorcamara)
+                                            .build(),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .aspectRatio(16f / 9f),
+                                        contentScale = ContentScale.Inside
+                                    )
+                                }
                             }
-                        }
-                    }
 
-                    // Detectar interacción del usuario
-                    LaunchedEffect(pagerState) {
-                        snapshotFlow { pagerState.currentPage }.collect { page ->
-                            lastInteractionTime = System.currentTimeMillis()
+                            // Indicadores de página
+                            Row(
+                                Modifier
+                                    .height(50.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                repeat(pagerState.pageCount) { iteration ->
+                                    val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(2.dp)
+                                            .clip(CircleShape)
+                                            .background(color)
+                                            .size(8.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
+                // Aquí comienza la sección de servicios
+                modeloListaServicios.forEach { tipoServicio ->
+                    item {
+                        Text(
+                            text = tipoServicio.nombre,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
 
-            }
-
-            if (showModalCerrarSesion) {
-                CustomModalCerrarSesion(showModalCerrarSesion,
-                    stringResource(R.string.cerrar_sesion),
-                    onDismiss = { showModalCerrarSesion = false },
-                    onAccept = {
-                        scope.launch {
-                            // Llamamos a deletePreferences de manera segura dentro de una coroutine
-                            tokenManager.deletePreferences()
-
-                            // cerrar modal
-                            showModalCerrarSesion = false
-
-                            navigateToLogin(navController)
+                    items(tipoServicio.lista.chunked(2)) { rowItems ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp)
+                        ) {
+                            rowItems.forEach { servicio ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                ) {
+                                    ServicioCard(servicio)
+                                }
+                            }
+                            // If there's an odd number of items, add an empty box for alignment
+                            if (rowItems.size == 1) {
+                                Box(modifier = Modifier.weight(1f))
+                            }
                         }
-                    })
-            }
+                    }
 
-            if (showModal1Boton) {
-                CustomModal1Boton(
-                    showModal1Boton,
-                    stringResource(R.string.numero_bloqueado),
-                    onDismiss = {
-                        scope.launch {
-                            tokenManager.deletePreferences()
-                            showModal1Boton = false
-                            navigateToLogin(navController)
-                        }
-                    })
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
+        }
 
-            if (isLoading) {
-                LoadingModal(isLoading = isLoading)
-            }
-        } // end-sscalfold
+
+
+
 
         resultado?.getContentIfNotHandled()?.let { result ->
             when (result.success) {
@@ -297,6 +289,8 @@ fun PrincipalScreen(
                         // Construir la URL completa de la imagen
                         "${RetrofitBuilder.urlImagenes}${sliderItem.imagen}"
                     }
+
+                    modeloListaServicios = result.tiposervicio
                 }
 
                 else -> {
@@ -308,6 +302,54 @@ fun PrincipalScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+fun ServicioCard(servicio: ListaServicio) {
+    Card(
+        modifier = Modifier
+            .padding(top = 16.dp, start = 4.dp, end = 4.dp, bottom = 4.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Color de fondo blanco
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp // Elevación similar a CardView
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("${RetrofitBuilder.urlImagenes}${servicio.imagen}")
+                    .crossfade(true)
+                    .placeholder(R.drawable.spinloading)
+                    .error(R.drawable.errorcamara)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .heightIn(max = 220.dp)
+                    .padding(top = 8.dp),
+                contentScale = ContentScale.Inside
+            )
+            Text(
+                text = servicio.nombre,
+                textAlign = TextAlign.Center,
+                color = Color.Black,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            )
         }
     }
 }

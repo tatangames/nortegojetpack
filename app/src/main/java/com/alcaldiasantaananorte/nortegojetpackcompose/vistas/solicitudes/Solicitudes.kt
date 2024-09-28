@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -201,8 +202,14 @@ fun SolicitudCardTipo1(solicitud: MSolicitudesListado,
             .padding(8.dp)
             .clickable {
                 showDialogSolicitud = true
-            },
-        elevation = CardDefaults.cardElevation(4.dp)
+            }  ,
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Color de fondo blanco
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp // Elevación similar a CardView
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -274,8 +281,14 @@ fun SolicitudCardTipo2(solicitud: MSolicitudesListado,
             .padding(8.dp)
             .clickable {
                 showDialogSolicitud = true
-            },
-        elevation = CardDefaults.cardElevation(4.dp)
+            }  ,
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Color de fondo blanco
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp // Elevación similar a CardView
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -336,9 +349,15 @@ fun SolicitudCardTipo3(solicitud: MSolicitudesListado,
             .padding(8.dp)
             .clickable {
                 showDialogSolicitud = true
-            },
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+            }  ,
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Color de fondo blanco
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp // Elevación similar a CardView
+        )
+    )  {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -395,9 +414,15 @@ fun SolicitudCardTipo4(solicitud: MSolicitudesListado,
             .padding(8.dp)
             .clickable {
                 showDialogSolicitud = true
-            },
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+            }  ,
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Color de fondo blanco
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp // Elevación similar a CardView
+        )
+    )  {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {

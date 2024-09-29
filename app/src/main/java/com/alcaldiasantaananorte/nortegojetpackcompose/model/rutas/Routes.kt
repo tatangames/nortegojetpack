@@ -17,4 +17,5 @@ sealed class Routes(val route: String) {
         fun createRoute(idservicio: Int, titulo:String, descripcion:String) = "denunciaBasica/$idservicio/$titulo/$descripcion"
     }
 
+
 }

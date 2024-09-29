@@ -39,8 +39,12 @@
     <string name="abrir_galeria">Abrir Galería</string>
     <string name="opciones">Opciones</string>
     <string name="seleccionar_imagen">Seleccionar Imagen</string>
-
-
+    <string name="permiso_de_camara_requerido">Permiso de cámara requerido</string>
+    <string name="para_usar_esta_funcion">Para usar esta función, necesitas conceder permiso a la cámara en los ajustes de la aplicación.</string>
+    <string name="ir_a_ajustes">Ir a Ajustes</string>
+    <string name="nota_opcional">Nota opcional</string>
+    <string name="permisos_ubicacion_denegados">Permiso de ubicación denegado</string>
 
 
 </resources>
+

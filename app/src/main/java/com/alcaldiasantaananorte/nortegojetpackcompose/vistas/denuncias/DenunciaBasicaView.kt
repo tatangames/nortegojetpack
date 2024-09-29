@@ -1,9 +1,16 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.denuncias
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -74,6 +81,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -88,6 +96,8 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1B
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCerrarSesion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.RequestCameraPermission
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.SolicitarPermisosUbicacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
@@ -101,6 +111,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.RegistrarDenunciaBasicaViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ServiciosViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo1
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo2
@@ -115,18 +126,59 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DenunciaBasicaScreen(
     idservicio: Int, titulo: String,
-    descripcion: String, navController: NavController
+    descripcion: String,
+    navController: NavController,
+    viewModel: RegistrarDenunciaBasicaViewModel = viewModel()
 ) {
-
+    val ctx = LocalContext.current
     var showBottomSheet by remember { mutableStateOf(false) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
-    // val isLoading by viewModelOcultar.isLoading.observeAsState(initial = false)
+    val scope = rememberCoroutineScope() // Crea el alcance de coroutine
+    val nota by viewModel.nota.observeAsState("")
+    val isLoading by viewModel.isLoading.observeAsState(initial = false)
+    val resultado by viewModel.resultado.observeAsState()
+    val tokenManager = remember { TokenManager(ctx) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var token by remember { mutableStateOf("") }
 
+    var location by remember { mutableStateOf<Location?>(null) }
+    var permisosOtorgados by remember { mutableStateOf(false) }
+
+
+    // Función para obtener la ubicación
+    fun getLocation() {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            location = lastKnownLocation
+        }
+    }
+
+    SolicitarPermisosUbicacion(
+        onPermisosConcedidos = {
+            permisosOtorgados = true
+            getLocation()
+        },
+        onPermisosDenegados = {
+            permisosOtorgados = false
+        }
+    )
+
+
+    // Lanzar la solicitud cuando se carga la pantalla
+    LaunchedEffect(Unit) {
+        scope.launch {
+            token = tokenManager.userToken.first()
+        }
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -134,16 +186,28 @@ fun DenunciaBasicaScreen(
         imageUri = uri
     }
 
-    // Camera Launcher (deberías manejar los permisos de cámara aparte)
+    // ** CAMARA
+    var permisoCamara by remember { mutableStateOf(false) }
+
+    val file = remember { File(context.filesDir, "camera_photo.jpg") }
+    val uri = remember {
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+    }
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        bitmap?.let {
-            // Aquí puedes manejar el bitmap si decides guardar la imagen de la cámara
-            imageUri = saveBitmapToCache(context, bitmap)
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            imageUri = uri
         }
     }
 
+    RequestCameraPermission {
+        permisoCamara = true
+    }
 
     Scaffold(
         topBar = {
@@ -182,7 +246,7 @@ fun DenunciaBasicaScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp) // Aumenta la altura del Box
+                    .height(350.dp)
                     .padding(top = 0.dp),
                 contentAlignment = Alignment.Center,
             ) {
@@ -190,8 +254,8 @@ fun DenunciaBasicaScreen(
                     model = imageUri ?: R.drawable.camarafoto,
                     contentDescription = stringResource(R.string.seleccionar_imagen),
                     modifier = Modifier
-                        .height(250.dp) // Aumenta solo la altura de la imagen
-                        .width(250.dp) // Aumenta el ancho de la imagen
+                        .height(250.dp)
+                        .width(250.dp)
                         .align(Alignment.Center)
                         .clickable(
                             indication = null, // Elimina el efecto de sombreado
@@ -202,6 +266,36 @@ fun DenunciaBasicaScreen(
                     contentScale = ContentScale.Crop
                 )
             }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            TextField(
+                value = nota,
+                onValueChange = { viewModel.setNota(it) },
+                label = { Text(stringResource(R.string.nota_opcional)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Button(
+                onClick = {
+                    /*if (imageUri != null) {
+                        viewModel.registrarDenunciaBasicaRetrofit(token, idservicio, context, imageUri!!)
+                    } else {
+                        // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
+                        showBottomSheet = true
+                    }*/
+
+
+                    Log.d("RESULTADO", "latitud: ${location?.latitude} longitud: ${location?.longitude}")
+                },
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                enabled = !isLoading
+            ) {
+                Text(if (isLoading) "Enviando..." else "Enviar Denuncia")
+            }
+
 
             // Mostrar Bottom Sheet
             if (showBottomSheet) {
@@ -225,9 +319,13 @@ fun DenunciaBasicaScreen(
                         // Botón para abrir la cámara
                         Button(
                             onClick = {
-                                showBottomSheet = false
-                                // Pedir permisos de cámara y lanzar
-                                cameraLauncher.launch(null)
+                                if(permisoCamara){
+                                    showBottomSheet = false
+                                    // Pedir permisos de cámara y lanzar
+                                    cameraLauncher.launch(uri)
+                                }else{
+                                    showPermissionDialog = true
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ColorAzulGob,
@@ -271,30 +369,77 @@ fun DenunciaBasicaScreen(
                 }
             }
 
+            if (showPermissionDialog) {
+                AlertDialog(
+                    onDismissRequest = { showPermissionDialog = false },
+                    title = { Text(stringResource(R.string.permiso_de_camara_requerido)) },
+                    text = { Text(stringResource(R.string.para_usar_esta_funcion)) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showPermissionDialog = false
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.ir_a_ajustes))
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                showPermissionDialog = false
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorGris1Gob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.cancelar))
+                        }
+                    }
+                )
+            }
 
-            /*if (isLoading) {
+            if (isLoading) {
                 LoadingModal(isLoading = true)
-            }*/
+            }
         }
     }
 
-
-}
-
-
-// Función para guardar el bitmap en la caché
-fun saveBitmapToCache(context: Context, bitmap: Bitmap): Uri? {
-    val filename = "temp_image.png"
-    val cacheDir = context.cacheDir
-    val file = File(cacheDir, filename)
-    return try {
-        val stream: OutputStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        stream.flush()
-        stream.close()
-        FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-    } catch (e: IOException) {
-        e.printStackTrace()
-        null
+    resultado?.getContentIfNotHandled()?.let { result ->
+        when (result.success) {
+            1 -> {
+                CustomToasty(
+                    ctx,
+                    "ya hay una pendiente",
+                    ToastType.INFO
+                )
+            }
+            2 -> {
+                CustomToasty(
+                    ctx,
+                    "correcto",
+                    ToastType.INFO
+                )
+            }
+            else -> {
+                CustomToasty(
+                    ctx,
+                    stringResource(id = R.string.error_reintentar),
+                    ToastType.ERROR
+                )
+            }
+        }
     }
 }
+
+
+
+

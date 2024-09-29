@@ -35,5 +35,12 @@
     <string name="borrar_solicitud">Borrar Solicitud</string>
     <string name="confirmar_accion">Confirmar Acción</string>
     <string name="borrar">Borrar</string>
+    <string name="abrir_camara">Abrir Cámara</string>
+    <string name="abrir_galeria">Abrir Galería</string>
+    <string name="opciones">Opciones</string>
+    <string name="seleccionar_imagen">Seleccionar Imagen</string>
+
+
+
 
 </resources>

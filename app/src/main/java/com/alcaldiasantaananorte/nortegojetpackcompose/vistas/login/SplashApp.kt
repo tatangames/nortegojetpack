@@ -72,6 +72,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.LoginViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.denuncias.DenunciaBasicaScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.PrincipalScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudesScreen
 
@@ -109,6 +110,16 @@ fun AppNavigation() {
 
         composable(Routes.VistaPrincipal.route) { PrincipalScreen(navController) }
         composable(Routes.VistaSolicitudes.route) { SolicitudesScreen(navController) }
+
+        composable(Routes.VistaDenunciaBasica.route) { backStackEntry ->
+            val _idTipoServicio = backStackEntry.arguments?.getString("idservicio") ?: "0"
+            val idTipoServicio = _idTipoServicio.toIntOrNull() ?: 0
+
+            val titulo = backStackEntry.arguments?.getString("titulo") ?: ""
+            val descripcion = backStackEntry.arguments?.getString("descripcion") ?: ""
+
+            DenunciaBasicaScreen(idTipoServicio, titulo, descripcion, navController)
+        }
     }
 }
 

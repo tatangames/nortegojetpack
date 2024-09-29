@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.navOptions
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
@@ -99,19 +100,14 @@ fun PrincipalScreen(
 ) {
     val ctx = LocalContext.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    var isNavigating by remember { mutableStateOf(false) }
     var showModalCerrarSesion by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.observeAsState(false)
     var showModal1Boton by remember { mutableStateOf(false) }
     val tokenManager = remember { TokenManager(ctx) }
     val resultado by viewModel.resultado.observeAsState()
     val scope = rememberCoroutineScope() // Crea el alcance de coroutine
-
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var modeloListaServicios by remember { mutableStateOf(listOf<TipoServicio>()) }
-
-
-
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -127,31 +123,30 @@ fun PrincipalScreen(
             ModalDrawerSheet {
                 DrawerHeader()
                 DrawerBody(items = itemsMenu) { item ->
-                    if (!isNavigating) {
-                        isNavigating = true
+                    when (item.id) {
+                        1 -> {
 
-                        when (item.id) {
-                            1 -> {
-                                navController.navigate(Routes.VistaSolicitudes.route) // Navega a la pantalla de solicitudes
-                            }
-
-                            2 -> {
-                                // cerrar sesion
-                                showModalCerrarSesion = true
+                            navController.navigate(Routes.VistaSolicitudes.route) {
+                                navOptions {
+                                    launchSingleTop = true
+                                }
                             }
                         }
 
-                        scope.launch {
-                            drawerState.close()
-                            delay(300) // Tiempo en milisegundos antes de permitir otra navegación
-                            isNavigating = false
+                        2 -> {
+                            // cerrar sesion
+                            showModalCerrarSesion = true
                         }
                     }
+
+                    scope.launch {
+                        drawerState.close()
+                    }
+
                 }
             }
         }
     ) {
-
 
 
         Scaffold(
@@ -222,7 +217,8 @@ fun PrincipalScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 repeat(pagerState.pageCount) { iteration ->
-                                    val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                                    val color =
+                                        if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
                                     Box(
                                         modifier = Modifier
                                             .padding(2.dp)
@@ -260,10 +256,35 @@ fun PrincipalScreen(
                                         .weight(1f)
                                         .padding(4.dp)
                                 ) {
-                                    ServicioCard(servicio)
+                                    ServicioCard(
+                                        servicio = servicio,
+                                        onClick = { idTipoServicio, titulo, descripcion ->
+
+                                            when (idTipoServicio) {
+                                                1 -> {
+                                                    // Navegar a la pantalla VistaDenunciaBasica
+                                                    navController.navigate(
+                                                        Routes.VistaDenunciaBasica.createRoute(
+                                                            servicio.id,
+                                                            titulo,
+                                                            descripcion
+                                                        ),
+                                                        navOptions {
+                                                            launchSingleTop = true
+                                                        }
+                                                    )
+                                                }
+
+                                                else -> {
+                                                    println("Otro tipo de servicio: $idTipoServicio")
+                                                }
+                                            }
+
+                                        }
+                                    )
                                 }
                             }
-                            // If there's an odd number of items, add an empty box for alignment
+                            // Si hay un número impar de items, agrega una caja vacía para la alineación
                             if (rowItems.size == 1) {
                                 Box(modifier = Modifier.weight(1f))
                             }
@@ -275,10 +296,42 @@ fun PrincipalScreen(
                     }
                 }
             }
+
+
+            if (showModalCerrarSesion) {
+                CustomModalCerrarSesion(showModalCerrarSesion,
+                    stringResource(R.string.cerrar_sesion),
+                    onDismiss = { showModalCerrarSesion = false },
+                    onAccept = {
+                        scope.launch {
+                            // Llamamos a deletePreferences de manera segura dentro de una coroutine
+                            tokenManager.deletePreferences()
+
+                            // cerrar modal
+                            showModalCerrarSesion = false
+
+                            navigateToLogin(navController)
+                        }
+                    })
+            }
+
+            if (showModal1Boton) {
+                CustomModal1Boton(
+                    showModal1Boton,
+                    stringResource(R.string.numero_bloqueado),
+                    onDismiss = {
+                        scope.launch {
+                            tokenManager.deletePreferences()
+                            showModal1Boton = false
+                            navigateToLogin(navController)
+                        }
+                    })
+            }
+
+            if (isLoading) {
+                LoadingModal(isLoading = isLoading)
+            }
         }
-
-
-
 
 
         resultado?.getContentIfNotHandled()?.let { result ->
@@ -308,11 +361,18 @@ fun PrincipalScreen(
 
 
 @Composable
-fun ServicioCard(servicio: ListaServicio) {
+fun ServicioCard(servicio: ListaServicio, onClick: (Int, String, String) -> Unit) {
     Card(
         modifier = Modifier
             .padding(top = 16.dp, start = 4.dp, end = 4.dp, bottom = 4.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                onClick(
+                    servicio.tiposervicio,
+                    servicio.nombre,
+                    servicio.descripcion ?: ""
+                )
+            },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White // Color de fondo blanco

@@ -1,4 +1,4 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel
+package com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.solicitudes
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,8 +19,13 @@ class SolicitudesViewModel() : ViewModel() {
     val isLoading: LiveData<Boolean> get() = _isLoading
 
     private var disposable: Disposable? = null
+    private var isRequestInProgress = false
 
     fun solicitudesRetrofit(token: String, idusuario: String) {
+        if (isRequestInProgress) return
+
+        isRequestInProgress = true
+
         _isLoading.value = true
         disposable = RetrofitBuilder.getAuthenticatedApiService(token).listadoSolicitudes(idusuario)
             .subscribeOn(Schedulers.io())
@@ -30,9 +35,11 @@ class SolicitudesViewModel() : ViewModel() {
                 { response ->
                     _isLoading.value = false
                     _resultado.value = Event(response)
+                    isRequestInProgress = false
                 },
                 { error ->
                     _isLoading.value = false
+                    isRequestInProgress = false
                 }
             )
     }
@@ -53,8 +60,13 @@ class SolicitudesOcultarViewModel() : ViewModel() {
     val isLoading: LiveData<Boolean> get() = _isLoading
 
     private var disposable: Disposable? = null
+    private var isRequestInProgress = false
 
     fun solicitudesOcultarRetrofit(token: String, id: Int, tipo: Int) {
+        if (isRequestInProgress) return
+
+        isRequestInProgress = true
+
         _isLoading.value = true
         disposable = RetrofitBuilder.getAuthenticatedApiService(token).ocultarSolicitudes(id, tipo)
             .subscribeOn(Schedulers.io())
@@ -64,9 +76,11 @@ class SolicitudesOcultarViewModel() : ViewModel() {
                 { response ->
                     _isLoading.value = false
                     _resultado.value = Event(response)
+                    isRequestInProgress = false
                 },
                 { error ->
                     _isLoading.value = false
+                    isRequestInProgress = false
                 }
             )
     }

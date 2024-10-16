@@ -1,6 +1,5 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,10 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -61,9 +57,8 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.SolicitudesOcultarViewModel
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.SolicitudesViewModel
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login.BarraToolbar
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.solicitudes.SolicitudesOcultarViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.solicitudes.SolicitudesViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

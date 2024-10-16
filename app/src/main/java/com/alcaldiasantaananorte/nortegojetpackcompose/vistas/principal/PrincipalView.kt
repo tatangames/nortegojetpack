@@ -1,18 +1,17 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal
 
-import android.util.Log
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,43 +19,28 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ModalDrawer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.*
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -79,15 +63,11 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ListaServicio
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ServiciosViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.ServiciosViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -108,6 +88,10 @@ fun PrincipalScreen(
     val scope = rememberCoroutineScope() // Crea el alcance de coroutine
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var modeloListaServicios by remember { mutableStateOf(listOf<TipoServicio>()) }
+
+    val phoneNumberDenuncias = "+50369886392"
+    val uri = Uri.parse("https://wa.me/${phoneNumberDenuncias.replace("+", "")}")
+    var showToastErrorWhats by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -142,12 +126,10 @@ fun PrincipalScreen(
                     scope.launch {
                         drawerState.close()
                     }
-
                 }
             }
         }
     ) {
-
 
         Scaffold(
             topBar = {
@@ -274,6 +256,33 @@ fun PrincipalScreen(
                                                         }
                                                     )
                                                 }
+                                                2 -> {
+                                                    // solicitud y denuncias tala arbol
+                                                    navController.navigate(
+                                                        Routes.VistaSolicitudTalaArbol.route) {
+                                                        navOptions {
+                                                            launchSingleTop = true
+                                                        }
+                                                    }
+
+                                                }
+                                                3 -> {
+                                                    // denuncias
+                                                    val intent = Intent(Intent.ACTION_VIEW, uri)
+
+                                                    try {
+                                                        ctx.startActivity(intent)
+                                                    } catch (e: ActivityNotFoundException) {
+                                                        // En caso de que no se pueda abrir el Intent, se abre el navegador
+                                                        try {
+                                                            val browserIntent = Intent(Intent.ACTION_VIEW, uri)
+                                                            ctx.startActivity(browserIntent)
+                                                        } catch (e: ActivityNotFoundException) {
+                                                            // Mostrar un mensaje si no hay navegador disponible
+                                                            showToastErrorWhats = true
+                                                        }
+                                                    }
+                                                }
 
                                                 else -> {
                                                     println("Otro tipo de servicio: $idTipoServicio")
@@ -355,6 +364,16 @@ fun PrincipalScreen(
                     )
                 }
             }
+        }
+
+        // solo mostrar si no puede abrir whatss App o Navegador
+        if (showToastErrorWhats) {
+            CustomToasty(
+                ctx,
+                stringResource(id = R.string.error_abrir_whatsapp),
+                ToastType.ERROR
+            )
+            showToastErrorWhats = true
         }
     }
 }

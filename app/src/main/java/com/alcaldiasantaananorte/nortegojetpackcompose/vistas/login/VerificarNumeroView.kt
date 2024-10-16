@@ -1,6 +1,8 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
-import android.util.Log
+import android.content.Context
+import android.content.IntentFilter
+import android.provider.Telephony
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,18 +40,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ReintentoSMSViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.login.ReintentoSMSViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import com.alcaldiasantaananorte.nortegojetpackcompose.clases.SMSReceiver
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.VerificarCodigoViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.login.VerificarCodigoViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -78,13 +81,14 @@ fun VistaVerificarNumeroView(
     val isLoadingCodigo by viewModelCodigo.isLoading.observeAsState(false)
     val resultadoSMS by viewModel.resultado.observeAsState()
 
+    val resultadoCodigo by viewModelCodigo.resultado.observeAsState()
+
     // Asignar el teléfono al ViewModel para la llamada
     LaunchedEffect(telefono) {
         viewModel.setTelefono(telefono)
         viewModelCodigo.setTelefono(telefono)
         countdownViewModel.updateTimer(value = segundos)
     }
-
 
 
     // Estructura del Scaffold
@@ -122,7 +126,15 @@ fun VistaVerificarNumeroView(
 
             Spacer(modifier = Modifier.height(35.dp))
 
-            OtpTextField(codigo = txtFieldCodigo, onTextChanged = { newText ->
+            // Integrar el detector de SMS
+            SMSCodeDetector { detectedCode ->
+                txtFieldCodigo = detectedCode
+                viewModelCodigo.setCodigo(detectedCode)
+                verificarCampos(ctx, txtFieldCodigo, msgCodigoRequerido, viewModelCodigo)
+            }
+
+            OtpTextField(codigo = txtFieldCodigo,
+                onTextChanged = { newText ->
                 txtFieldCodigo = newText
                 viewModelCodigo.setCodigo(newText)
             })
@@ -131,19 +143,7 @@ fun VistaVerificarNumeroView(
 
             Button(
                 onClick = {
-                    when {
-                        txtFieldCodigo.isBlank() -> {
-                            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
-                        }
-
-                        txtFieldCodigo.length < 6 -> {
-                            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
-                        }
-
-                        else -> {
-                            viewModelCodigo.verificarCodigoRetrofit()
-                        }
-                    }
+                    verificarCampos(ctx, txtFieldCodigo, msgCodigoRequerido, viewModelCodigo)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorAzulGob,
@@ -171,12 +171,9 @@ fun VistaVerificarNumeroView(
                 LoadingModal(isLoading = isLoadingCodigo)
             }
 
-
             if(showModal1Boton){
                 CustomModal1Boton(showModal1Boton, modalMensajeString, onDismiss = {showModal1Boton = false})
             }
-
-
 
             resultadoSMS?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
@@ -186,6 +183,10 @@ fun VistaVerificarNumeroView(
                         showModal1Boton = true
                     }
                     2 -> {
+                        // error enviar SMS
+                        CustomToasty(ctx, stringResource(id = R.string.error_enviar_sms), ToastType.ERROR)
+                    }
+                    3 -> {
                         countdownViewModel.resetTimer()
                     }
                     else -> {
@@ -195,7 +196,6 @@ fun VistaVerificarNumeroView(
                 }
             }
 
-            val resultadoCodigo by viewModelCodigo.resultado.observeAsState()
             resultadoCodigo?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
                     1 -> {
@@ -222,6 +222,42 @@ fun VistaVerificarNumeroView(
         }
     }
 }
+
+fun verificarCampos(ctx: Context, txtFieldCodigo: String, msgCodigoRequerido: String, viewModelCodigo: VerificarCodigoViewModel){
+    when {
+        txtFieldCodigo.isBlank() -> {
+            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
+        }
+
+        txtFieldCodigo.length < 6 -> {
+            CustomToasty(ctx, msgCodigoRequerido, ToastType.ERROR)
+        }
+
+        else -> {
+            viewModelCodigo.verificarCodigoRetrofit()
+        }
+    }
+}
+
+@Composable
+fun SMSCodeDetector(onCodeDetected: (String) -> Unit) {
+    val context = LocalContext.current
+    val receiver = remember { SMSReceiver() }
+
+    DisposableEffect(context) {
+        val intentFilter = IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)
+        context.registerReceiver(receiver, intentFilter)
+
+        receiver.onCodeReceived = { detectedCode ->
+            onCodeDetected(detectedCode)
+        }
+
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
+}
+
 
 
 @Composable

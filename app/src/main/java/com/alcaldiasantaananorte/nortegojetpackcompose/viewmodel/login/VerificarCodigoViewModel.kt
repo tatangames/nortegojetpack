@@ -1,4 +1,4 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel
+package com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.login
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,7 +12,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 
 class VerificarCodigoViewModel : ViewModel() {
     private val _telefono = MutableLiveData<String>()
-
     private val _codigo = MutableLiveData<String>()
 
     private val _resultado = MutableLiveData<Event<ModeloVerificarCodigo>>()
@@ -22,6 +21,7 @@ class VerificarCodigoViewModel : ViewModel() {
     val isLoading: LiveData<Boolean> get() = _isLoading
 
     private var disposable: Disposable? = null
+    private var isRequestInProgress = false
 
     fun setTelefono(telefono: String) {
         _telefono.value = telefono
@@ -32,6 +32,11 @@ class VerificarCodigoViewModel : ViewModel() {
     }
 
     fun verificarCodigoRetrofit() {
+
+        // Verificar si ya hay una solicitud en progreso
+        if (isRequestInProgress) return
+
+        isRequestInProgress = true
         _isLoading.value = true
         disposable = RetrofitBuilder.getApiService().verificarCodigo(_telefono.value!!, _codigo.value!!)
             .subscribeOn(Schedulers.io())
@@ -41,9 +46,11 @@ class VerificarCodigoViewModel : ViewModel() {
                 { response ->
                     _isLoading.value = false
                     _resultado.value = Event(response)
+                    isRequestInProgress = false
                 },
                 { error ->
                     _isLoading.value = false
+                    isRequestInProgress = false
                 }
             )
     }

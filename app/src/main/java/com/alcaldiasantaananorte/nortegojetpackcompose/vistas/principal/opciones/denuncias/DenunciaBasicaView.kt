@@ -1,130 +1,73 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.denuncias
+package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.denuncias
 
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ModalDrawer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.*
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.navOptions
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
-import coil.request.ImageRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.BarraToolbarColor
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCerrarSesion
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1ImageBoton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.RequestCameraPermission
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.SolicitarPermisosUbicacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ListaServicio
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
-import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
-import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.GreyLight
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.RegistrarDenunciaBasicaViewModel
-import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.ServiciosViewModel
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo1
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo2
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo3
-import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.solicitudes.SolicitudCardTipo4
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.delay
+import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.RegistrarDenunciaBasicaViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,12 +87,13 @@ fun DenunciaBasicaScreen(
     val isLoading by viewModel.isLoading.observeAsState(initial = false)
     val resultado by viewModel.resultado.observeAsState()
     val tokenManager = remember { TokenManager(ctx) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    var popPermisoCamaraRequerido by remember { mutableStateOf(false) }
+    var popDenunciaPendiente by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf("") }
 
-    var location by remember { mutableStateOf<Location?>(null) }
-    var permisosOtorgados by remember { mutableStateOf(false) }
-
+    //var location by remember { mutableStateOf<Location?>(null) }
+    var latitudUsuario by remember { mutableStateOf<Double?>(null) }
+    var longitudUsuario by remember { mutableStateOf<Double?>(null) }
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -157,21 +101,29 @@ fun DenunciaBasicaScreen(
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
+
             val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            location = lastKnownLocation
+
+            lastKnownLocation?.let {
+                latitudUsuario = it.latitude
+                longitudUsuario = it.longitude
+            } ?: run {
+                // Manejar el caso donde lastKnownLocation es nulo
+                Log.d("Location", "No se pudo obtener la ubicación")
+            }
+        } else {
+            // Manejar el caso donde no se tienen los permisos de ubicación
+            Log.d("Location", "No se tienen los permisos de ubicación")
         }
     }
 
     SolicitarPermisosUbicacion(
         onPermisosConcedidos = {
-            permisosOtorgados = true
             getLocation()
         },
         onPermisosDenegados = {
-            permisosOtorgados = false
         }
     )
-
 
     // Lanzar la solicitud cuando se carga la pantalla
     LaunchedEffect(Unit) {
@@ -218,8 +170,9 @@ fun DenunciaBasicaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
-                .padding(top = 32.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()) // Hacer la vista desplazable
+                .imePadding(), // Ajustar al teclado
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -271,30 +224,65 @@ fun DenunciaBasicaScreen(
 
             TextField(
                 value = nota,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 onValueChange = { viewModel.setNota(it) },
                 label = { Text(stringResource(R.string.nota_opcional)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PhoneNumberVisualTransformation(),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
+                ),
+                placeholder = { Text(text = stringResource(id = R.string.nota)) },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF5F5F5),
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    disabledContainerColor = Color(0xFFF5F5F5),
+                    errorContainerColor = Color(0xFFF5F5F5),
+                    focusedIndicatorColor = Color.Black,
+                    unfocusedIndicatorColor = Color.Black,
+                    focusedLabelColor = Color.Black, // Color del label cuando está enfocado
+                    unfocusedLabelColor = Color.Black // Color del label cuando no está enfocado
+                ),
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(65.dp))
 
             Button(
                 onClick = {
-                    /*if (imageUri != null) {
-                        viewModel.registrarDenunciaBasicaRetrofit(token, idservicio, context, imageUri!!)
+
+                    getLocation()
+                    if (imageUri != null) {
+                        viewModel.registrarDenunciaBasicaRetrofit(token, idservicio, context, imageUri!!,
+                            latitudUsuario?.toString() ?: "",
+                            longitudUsuario?.toString() ?: ""
+                        )
                     } else {
                         // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
                         showBottomSheet = true
-                    }*/
-
-
-                    Log.d("RESULTADO", "latitud: ${location?.latitude} longitud: ${location?.longitude}")
+                    }
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                enabled = !isLoading
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ColorAzulGob,
+                    contentColor = ColorBlancoGob
+                ),
             ) {
-                Text(if (isLoading) "Enviando..." else "Enviar Denuncia")
+                Text(
+                    text = stringResource(id = R.string.enviar_denuncia),
+                    fontSize = 18.sp,
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                )
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
 
             // Mostrar Bottom Sheet
@@ -324,7 +312,7 @@ fun DenunciaBasicaScreen(
                                     // Pedir permisos de cámara y lanzar
                                     cameraLauncher.launch(uri)
                                 }else{
-                                    showPermissionDialog = true
+                                    popPermisoCamaraRequerido = true
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -369,15 +357,15 @@ fun DenunciaBasicaScreen(
                 }
             }
 
-            if (showPermissionDialog) {
+            if (popPermisoCamaraRequerido) {
                 AlertDialog(
-                    onDismissRequest = { showPermissionDialog = false },
+                    onDismissRequest = { popPermisoCamaraRequerido = false },
                     title = { Text(stringResource(R.string.permiso_de_camara_requerido)) },
                     text = { Text(stringResource(R.string.para_usar_esta_funcion)) },
                     confirmButton = {
                         Button(
                             onClick = {
-                                showPermissionDialog = false
+                                popPermisoCamaraRequerido = false
                                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                     data = Uri.fromParts("package", context.packageName, null)
                                 }
@@ -394,7 +382,7 @@ fun DenunciaBasicaScreen(
                     dismissButton = {
                         Button(
                             onClick = {
-                                showPermissionDialog = false
+                                popPermisoCamaraRequerido = false
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ColorGris1Gob,
@@ -407,26 +395,32 @@ fun DenunciaBasicaScreen(
                 )
             }
 
+            if(popDenunciaPendiente){
+                CustomModal1ImageBoton(popDenunciaPendiente, stringResource(R.string.denuncia_pendiente_zona),
+                    R.drawable.alerta, onDismiss = {popDenunciaPendiente = false})
+            }
+
             if (isLoading) {
                 LoadingModal(isLoading = true)
             }
+
         }
     }
 
     resultado?.getContentIfNotHandled()?.let { result ->
         when (result.success) {
             1 -> {
-                CustomToasty(
-                    ctx,
-                    "ya hay una pendiente",
-                    ToastType.INFO
-                )
+                // solicitud pendiente en su ubicacion
+                popDenunciaPendiente = true
             }
             2 -> {
+                // denuncia registrada
+                imageUri = null
+                viewModel.setNota("")
                 CustomToasty(
                     ctx,
-                    "correcto",
-                    ToastType.INFO
+                    stringResource(id = R.string.solicitud_enviada),
+                    ToastType.SUCCESS
                 )
             }
             else -> {

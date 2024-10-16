@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.santaananortemetapan.nortego"
-        minSdk = 26
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -91,6 +91,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation("com.google.accompanist:accompanist-pager:0.30.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.0")
+
+    implementation("com.google.android.gms:play-services-auth:20.5.0")
 
 
     implementation("io.coil-kt:coil-compose:2.7.0")

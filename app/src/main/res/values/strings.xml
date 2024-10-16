@@ -44,6 +44,19 @@
     <string name="ir_a_ajustes">Ir a Ajustes</string>
     <string name="nota_opcional">Nota opcional</string>
     <string name="permisos_ubicacion_denegados">Permiso de ubicación denegado</string>
+    <string name="error_enviar_sms">Error enviar SMS</string>
+    <string name="enviar_denuncia">Enviar Denuncia</string>
+    <string name="denuncia_pendiente_zona">Ya existe un Reporte de esta Zona, se está trabajando para solventarlo</string>
+    <string name="solicitud_enviada">Solicitud Enviada</string>
+    <string name="error_abrir_whatsapp">No se pudo abrir WhatsApp ni el navegador</string>
+    <string name="solicitud_tala_arbol">Solicitud Tala de Árbol</string>
+    <string name="denuncia_tala_arbol">Denuncias Tála de Árbol</string>
+    <string name="nombre">Nombre</string>
+    <string name="telefono">Teléfono</string>
+
+
+
+
 
 
 </resources>

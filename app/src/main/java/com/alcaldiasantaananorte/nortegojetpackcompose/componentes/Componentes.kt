@@ -2,6 +2,8 @@ package com.alcaldiasantaananorte.nortegojetpackcompose.componentes
 
 import android.content.Context
 import android.widget.Toast
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -126,6 +129,52 @@ fun CustomModal1Boton(showDialog: Boolean, message: String, onDismiss: () -> Uni
 }
 
 
+
+@Composable
+fun CustomModal1ImageBoton(showDialog: Boolean, message: String, @DrawableRes imageResId: Int, onDismiss: () -> Unit) {
+    if (showDialog) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = imageResId), // Reemplaza con tu recurso de imagen
+                        contentDescription = null, // Descripción de la imagen para accesibilidad
+                        modifier = Modifier
+                            .size(100.dp) // Tamaño de la imagen
+                            .padding(bottom = 16.dp) // Espacio entre la imagen y el texto
+                    )
+                    Text(
+                        text = message,
+                        fontSize = 18.sp,
+                        color = ColorNegroGob,
+                        modifier = Modifier.padding(bottom = 16.dp) // Espacio entre el texto y el botón
+                    )
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorAzulGob,
+                            contentColor = ColorBlancoGob
+                        ),
+                    ) {
+                        Text(text = stringResource(id = R.string.aceptar))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 @Composable
 fun CustomModal2Botones(
     showDialog: Boolean,
@@ -150,7 +199,7 @@ fun CustomModal2Botones(
                 ) {
                     Text(
                         text = message,
-                        fontSize = 18.sp,
+                        fontSize = 17.sp,
                         color = ColorNegroGob,
                     )
                     Spacer(modifier = Modifier.height(24.dp))

@@ -9,7 +9,6 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloVerific
 import io.reactivex.rxjava3.core.Single
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.Multipart
@@ -56,8 +55,40 @@ interface ApiService {
     fun registrarDenunciaBasica(
         @Part imagen: MultipartBody.Part,
         @Part("nota") nota: RequestBody,
-        @Part("idservicio") idservicio: RequestBody
+        @Part("idservicio") idservicio: RequestBody,
+        @Part("latitud") latitud: RequestBody,
+        @Part("longitud") longitud: RequestBody,
     ): Single<ModeloBasico>
+
+    // REGISTRAR SOLICITUD TALA DE ARBOL
+    @Multipart
+    @POST("app/servicios/talaarbol-solicitud/registrar")
+    fun registrarSolicitudTalaArbol(
+        @Part imagen: MultipartBody.Part,
+        @Part("nombre") nombre: RequestBody,
+        @Part("telefono") telefono: RequestBody,
+        @Part("direccion") direccion: RequestBody,
+        @Part("escritura") escritura: RequestBody,
+        @Part("nota") nota: RequestBody,
+        @Part("latitud") latitud: RequestBody,
+        @Part("longitud") longitud: RequestBody,
+    ): Single<ModeloBasico>
+
+
+
+
+
+    // REGISTRAR DENUNCIA TALA DE ARBOL
+    @Multipart
+    @POST("app/servicios/talaarbol-denuncia/registrar")
+    fun registrarDenunciaTalaArbol(
+        @Part imagen: MultipartBody.Part,
+        @Part("iduser") idusuario: String,
+        @Part("nota") nota: RequestBody,
+        @Part("latitud") latitud: RequestBody,
+        @Part("longitud") longitud: RequestBody,
+    ): Single<ModeloBasico>
+
 
 }
 

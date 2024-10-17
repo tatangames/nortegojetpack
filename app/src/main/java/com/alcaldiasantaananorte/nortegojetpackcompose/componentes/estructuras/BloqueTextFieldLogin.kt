@@ -115,7 +115,7 @@ fun BloqueTextFieldLogin(text: String, onTextChanged: (String) -> Unit) {
 
 
 @Composable
-fun CustomTextFieldSolicitudTala(
+fun CustomTextFieldOpciones(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,

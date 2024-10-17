@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Checkbox
+import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
@@ -42,11 +46,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -54,6 +60,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
@@ -167,6 +174,64 @@ fun CustomModal1ImageBoton(showDialog: Boolean, message: String, @DrawableRes im
                         ),
                     ) {
                         Text(text = stringResource(id = R.string.aceptar))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun CustomModalUpdateApp(showDialog: Boolean, message: String, @DrawableRes imageResId: Int,
+                         onDismiss: () -> Unit,
+                         onAccept: () -> Unit)
+{
+    if (showDialog) {
+        Dialog(onDismissRequest = {}) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = imageResId), // Reemplaza con tu recurso de imagen
+                        contentDescription = null, // Descripción de la imagen para accesibilidad
+                        modifier = Modifier
+                            .size(100.dp) // Tamaño de la imagen
+                            .padding(bottom = 16.dp) // Espacio entre la imagen y el texto
+                    )
+                    Text(
+                        text = message,
+                        fontSize = 18.sp,
+                        color = ColorNegroGob,
+                        modifier = Modifier.padding(bottom = 16.dp) // Espacio entre el texto y el botón
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        TextButton(onClick = onDismiss) {
+                            Text(stringResource(id = R.string.cancelar))
+                        }
+                        Button(
+                            onClick = onAccept,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            ),
+                        ) {
+                            Text(stringResource(id = R.string.verificar), color = Color.White)
+                        }
                     }
                 }
             }
@@ -386,3 +451,74 @@ fun BarraToolbarColor(navController: NavController, titulo: String, backgroundCo
 }
 
 
+@Composable
+fun ImageBoxSolicitudTala(
+    imageUri: Any?, // Puede ser un Int (para drawable) o Uri.
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    boxHeight: Dp = 200.dp,
+    imageSize: Dp = 150.dp,
+    paddingTop: Dp = 5.dp,
+    contentDescription: String = ""
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(boxHeight)
+            .padding(top = paddingTop),
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = imageUri ?: R.drawable.camarafoto,
+            contentDescription = contentDescription,
+            modifier = Modifier
+                .size(imageSize)
+                .clickable(
+                    indication = null, // Elimina el efecto de sombreado.
+                    interactionSource = remember { MutableInteractionSource() } // Fuente de interacción personalizada.
+                ) {
+                    onClick()
+                },
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+
+@Composable
+fun CustomCheckboxTala(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    label: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Checkbox que puede cambiar el estado
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = ColorAzulGob, // Color cuando está marcado
+                uncheckedColor = Color.Gray, // Color cuando no está marcado
+                checkmarkColor = Color.White // Color del check (la palomita)
+            ),
+            modifier = Modifier
+                .size(24.dp) // Tamaño del checkbox
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Texto que también puede cambiar el estado al ser presionado
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .clickable { onCheckedChange(!checked) } // Cambia el estado al hacer clic en el texto
+                .padding(start = 4.dp)
+        )
+    }
+}

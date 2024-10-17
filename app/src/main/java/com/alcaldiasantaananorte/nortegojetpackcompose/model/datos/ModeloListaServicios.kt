@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class ModeloListaServicios(
     @SerializedName("success") val success: Int,
-    @SerializedName("codeandroid") val codeandroid: Int,
+    @SerializedName("modalandroid") val modalandroid: Int,
+    @SerializedName("versionandroid") val versionandroid: String,
     @SerializedName("slider") val slider: List<Slider>,
     @SerializedName("tiposervicio") val tiposervicio: List<TipoServicio>
 )

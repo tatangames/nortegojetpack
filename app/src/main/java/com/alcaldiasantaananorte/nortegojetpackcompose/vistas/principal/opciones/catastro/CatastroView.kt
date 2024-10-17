@@ -1,2 +1,0 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.catastro
-

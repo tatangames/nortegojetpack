@@ -27,9 +27,6 @@ class SolicitudTalaArbolViewModel : ViewModel() {
     private val _direccion = MutableLiveData<String>()
     val direccion: LiveData<String> = _direccion
 
-    private val _escritura = MutableLiveData<Int>()
-    val escritura: LiveData<Int> = _escritura
-
     private val _nota = MutableLiveData<String>()
     val nota: LiveData<String> = _nota
 
@@ -62,6 +59,7 @@ class SolicitudTalaArbolViewModel : ViewModel() {
     fun registrarSolicitudTalaArbolRX(token: String,
                                       context: Context,
                                       imageUri: Uri,
+                                      _escritura: String,
                                       _latitud: String?,
                                       _longitud: String?
     ) {
@@ -71,11 +69,10 @@ class SolicitudTalaArbolViewModel : ViewModel() {
 
         isRequestInProgress = true
 
-
         val currentNombre = _nombre.value ?: ""
         val currentTelefono = _telefono.value ?: ""
         val currentDireccion = _direccion.value ?: ""
-        val currentEscritura = _escritura.value ?: 0
+        val currentEscritura = _escritura
         val currentNota = _nota.value ?: ""
 
         _isLoading.value = true
@@ -98,7 +95,7 @@ class SolicitudTalaArbolViewModel : ViewModel() {
                 val nombreRequestBody = currentNombre.toRequestBody("text/plain".toMediaTypeOrNull())
                 val telefonoRequestBody = currentTelefono.toRequestBody("text/plain".toMediaTypeOrNull())
                 val direccionRequestBody = currentDireccion.toRequestBody("text/plain".toMediaTypeOrNull())
-                val escrituraRequestBody = currentEscritura.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val escrituraRequestBody = currentEscritura.toRequestBody("text/plain".toMediaTypeOrNull())
                 val notaRequestBody = currentNota.toRequestBody("text/plain".toMediaTypeOrNull())
 
                 // Opciones
@@ -130,10 +127,12 @@ class SolicitudTalaArbolViewModel : ViewModel() {
                     )
             } else {
                 _isLoading.value = false
+                isRequestInProgress = false
                 // Manejar el error de imagen nula
             }
         } catch (e: IOException) {
             _isLoading.value = false
+            isRequestInProgress = false
             // Manejar el error de IO
         }
     }

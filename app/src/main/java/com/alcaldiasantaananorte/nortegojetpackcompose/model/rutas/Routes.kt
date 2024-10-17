@@ -18,6 +18,6 @@ sealed class Routes(val route: String) {
     }
 
     object VistaSolicitudTalaArbol: Routes("talaarboles")
-
+    object VistaSolvencias: Routes("solvencias")
 
 }

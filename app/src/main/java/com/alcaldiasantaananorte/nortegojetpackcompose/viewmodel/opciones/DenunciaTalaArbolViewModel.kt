@@ -86,10 +86,12 @@ class DenunciaTalaArbolViewModel : ViewModel() {
                     )
             } else {
                 _isLoading.value = false
+                isRequestInProgress = false
                 // Manejar el error de imagen nula
             }
         } catch (e: IOException) {
             _isLoading.value = false
+            isRequestInProgress = false
             // Manejar el error de IO
         }
     }

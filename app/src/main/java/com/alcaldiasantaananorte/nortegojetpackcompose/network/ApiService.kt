@@ -75,9 +75,6 @@ interface ApiService {
     ): Single<ModeloBasico>
 
 
-
-
-
     // REGISTRAR DENUNCIA TALA DE ARBOL
     @Multipart
     @POST("app/servicios/talaarbol-denuncia/registrar")
@@ -89,6 +86,16 @@ interface ApiService {
         @Part("longitud") longitud: RequestBody,
     ): Single<ModeloBasico>
 
+    // REGISTRAR SOLVENCIA CATASTRO
+    @POST("app/solicitud/catastro")
+    @FormUrlEncoded
+    fun registrarSolvencias(@Field("tiposoli") tiposoli: Int,
+                            @Field("nombre") nombre: String,
+                            @Field("dui") dui: String,
+                            @Field("latitud") latitud: String?,
+                            @Field("longitud") longitud: String?
+
+    ): Single<ModeloBasico>
 
 }
 

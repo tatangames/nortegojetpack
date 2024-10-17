@@ -10,10 +10,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,9 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -35,8 +30,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,26 +47,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.BarraToolbarColor
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1ImageBoton
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomCheckboxTala
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ImageBoxSolicitudTala
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.RequestCameraPermission
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.SolicitarPermisosUbicacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.CustomTextFieldSolicitudTala
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.CustomTextFieldOpciones
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.CustomTextSolicitud
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
@@ -105,13 +95,14 @@ fun SolicitudDenunciaTalaArbolView(
     val tokenManager = remember { TokenManager(ctx) }
     var popPermisoCamaraRequerido by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf("") }
+    var idCliente by remember { mutableStateOf("") }
 
     // variables
     val nota by viewModelSolicitud.nota.observeAsState("")
     val nombre by viewModelSolicitud.nombre.observeAsState("")
     val telefono by viewModelSolicitud.telefono.observeAsState("")
     val direccion by viewModelSolicitud.direccion.observeAsState("")
-
+    var isChecked by remember { mutableStateOf(false) }
 
     var latitudUsuario by remember { mutableStateOf<Double?>(null) }
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
@@ -153,6 +144,7 @@ fun SolicitudDenunciaTalaArbolView(
     LaunchedEffect(Unit) {
         scope.launch {
             token = tokenManager.userToken.first()
+            idCliente = tokenManager.idUsuario.first()
         }
     }
 
@@ -194,7 +186,7 @@ fun SolicitudDenunciaTalaArbolView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp) // Padding adicional
                 .verticalScroll(rememberScrollState()) // Hacer la vista desplazable
                 .imePadding(), // Ajustar al teclado
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -264,7 +256,7 @@ fun SolicitudDenunciaTalaArbolView(
                         text = stringResource(R.string.nombre_dospuntos),
                         paddingTop = 20.dp
                     )
-                    CustomTextFieldSolicitudTala(
+                    CustomTextFieldOpciones(
                         value = nombre,
                         onValueChange = { viewModelSolicitud.setNombre(it) },
                         placeholder = stringResource(R.string.nombre),
@@ -273,12 +265,14 @@ fun SolicitudDenunciaTalaArbolView(
                         paddingTop = 20.dp
                     )
 
+                    //** telefono
 
                     CustomTextSolicitud(
                         text = stringResource(R.string.telefono_dospuntos),
                         paddingTop = 35.dp
                     )
-                    CustomTextFieldSolicitudTala(
+
+                    CustomTextFieldOpciones(
                         value = telefono,
                         onValueChange = { viewModelSolicitud.setTelefono(it) },
                         placeholder = stringResource(R.string.telefono),
@@ -287,70 +281,138 @@ fun SolicitudDenunciaTalaArbolView(
                         paddingTop = 20.dp
                     )
 
+                    //** direccion
 
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(350.dp)
-                            .padding(top = 30.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        AsyncImage(
-                            model = imageUri ?: R.drawable.camarafoto,
-                            contentDescription = stringResource(R.string.seleccionar_imagen),
-                            modifier = Modifier
-                                .height(150.dp)
-                                .width(150.dp)
-                                .align(Alignment.Center)
-                                .clickable(
-                                    indication = null, // Elimina el efecto de sombreado
-                                    interactionSource = remember { MutableInteractionSource() } // Fuente de interacción personalizada
-                                ) {
-                                    showBottomSheetCamara = true
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    CustomTextSolicitud(
+                        text = stringResource(R.string.direccion_dospuntos),
+                        paddingTop = 35.dp
+                    )
+
+                    CustomTextFieldOpciones(
+                        value = direccion,
+                        onValueChange = { viewModelSolicitud.setDireccion(it) },
+                        placeholder = stringResource(R.string.direccion),
+                        keyboardType = KeyboardType.Text,
+                        maxLength = 500,
+                        paddingTop = 20.dp
+                    )
+
+                    //** nota
+
+                    CustomTextSolicitud(
+                        text = stringResource(R.string.nota_opcional_dospuntos),
+                        paddingTop = 35.dp
+                    )
+
+                    CustomTextFieldOpciones(
+                        value = nota,
+                        onValueChange = { viewModelSolicitud.setNota(it) },
+                        placeholder = stringResource(R.string.nota),
+                        keyboardType = KeyboardType.Text,
+                        maxLength = 1000,
+                        paddingTop = 20.dp
+                    )
+
+                    Spacer(modifier = Modifier.height(38.dp))
+
+                    CustomCheckboxTala(
+                        checked = isChecked,
+                        onCheckedChange = { isChecked = it },
+                        label = stringResource(R.string.tiene_escrituras)
+                    )
 
 
+                    //** imagen
+
+                    CustomTextSolicitud(
+                        text = stringResource(R.string.seleccionar_imagen),
+                        paddingTop = 38.dp
+                    )
+
+                    ImageBoxSolicitudTala(
+                        imageUri = imageUri,
+                        onClick = { showBottomSheetCamara = true },
+                        paddingTop = 30.dp, // Ajusta el padding superior aquí.
+                        contentDescription = stringResource(R.string.seleccionar_imagen)
+                    )
 
 
                 }
                 1 -> {
-                    // Vista para la Opción 2: dos textos
-                    Column {
-                        Text(text = "Texto 1 para la Opción 2")
-                        Text(text = "Texto 2 para la Opción 2")
-                    }
+
+                    //** imagen
+
+                    CustomTextSolicitud(
+                        text = stringResource(R.string.seleccionar_imagen),
+                        paddingTop = 38.dp
+                    )
+
+                    ImageBoxSolicitudTala(
+                        imageUri = imageUri,
+                        onClick = { showBottomSheetCamara = true },
+                        paddingTop = 30.dp, // Ajusta el padding superior aquí.
+                        contentDescription = stringResource(R.string.seleccionar_imagen)
+                    )
+
+
+                    //** nota
+                    CustomTextSolicitud(
+                        text = stringResource(R.string.nota_opcional_dospuntos),
+                        paddingTop = 35.dp
+                    )
+
+                    CustomTextFieldOpciones(
+                        value = nota,
+                        onValueChange = { viewModelSolicitud.setNota(it) },
+                        placeholder = stringResource(R.string.nota),
+                        keyboardType = KeyboardType.Text,
+                        maxLength = 1000,
+                        paddingTop = 20.dp
+                    )
                 }
             }
 
 
-
-
-
-
+            Spacer(modifier = Modifier.height(40.dp))
 
 
             Button(
                 onClick = {
-
                     getLocation()
                     if (imageUri != null) {
-                       /* viewModel.registrarDenunciaBasicaRetrofit(token, idservicio, context, imageUri!!,
-                            latitudUsuario?.toString() ?: "",
-                            longitudUsuario?.toString() ?: ""
-                        )*/
+
+                        if(selectedOption == 0){
+
+                            val isSolicitudCompleta = verificarSolicitud(context, nombre, telefono, direccion)
+                            val valorCheckEscritura: Int = if (isChecked) 1 else 0 // solo para medio ambiente
+
+                            if (isSolicitudCompleta) {
+                                viewModelSolicitud.registrarSolicitudTalaArbolRX(token,
+                                    context, imageUri!!,
+                                    valorCheckEscritura.toString(),
+                                    latitudUsuario?.toString() ?: "",
+                                    longitudUsuario?.toString() ?: ""
+                                )
+                            }
+                        }else{
+                            viewModelDenuncia.registrarDenunciaTalaArbolRX(token,
+                                context, imageUri!!,
+                                idCliente,
+                                latitudUsuario?.toString() ?: "",
+                                longitudUsuario?.toString() ?: "",
+                                nota
+                            )
+                        }
+
                     } else {
-                        // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
                         showBottomSheetCamara = true
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp), // Mantén solo el padding horizontal aquí
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorAzulGob,
                     contentColor = ColorBlancoGob
@@ -366,7 +428,7 @@ fun SolicitudDenunciaTalaArbolView(
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
 
             // Mostrar Bottom Sheet
@@ -441,7 +503,6 @@ fun SolicitudDenunciaTalaArbolView(
                 }
             }
 
-
             if (popPermisoCamaraRequerido) {
                 AlertDialog(
                     onDismissRequest = { popPermisoCamaraRequerido = false },
@@ -480,20 +541,21 @@ fun SolicitudDenunciaTalaArbolView(
                 )
             }
 
-
-
             if (isLoadingSolicitud || isLoadingDenuncia) {
                 LoadingModal(isLoading = true)
             }
-
         }
     }
+
 
     resultadoSolicitud?.getContentIfNotHandled()?.let { result ->
         when (result.success) {
             1 -> {
                 // registro correcto
                 imageUri = null
+                viewModelSolicitud.setNombre("")
+                viewModelSolicitud.setTelefono("")
+                viewModelSolicitud.setDireccion("")
                 viewModelSolicitud.setNota("")
 
                 CustomToasty(
@@ -535,6 +597,36 @@ fun SolicitudDenunciaTalaArbolView(
             }
         }
     }
+}
+
+fun verificarSolicitud(context: Context, nombre: String, telefono: String, direccion: String): Boolean {
+    if (nombre.isEmpty()) {
+        CustomToasty(
+            context,
+            context.getString(R.string.nombre_es_requerido),
+            ToastType.INFO
+        )
+        return false
+    }
+    if (telefono.isEmpty()) {
+        CustomToasty(
+            context,
+            context.getString(R.string.telefono_es_requerido),
+            ToastType.INFO
+        )
+        return false
+    }
+    if (direccion.isEmpty()) {
+        CustomToasty(
+            context,
+            context.getString(R.string.direccion_es_requerida),
+            ToastType.INFO
+        )
+        return false
+    }
+
+    // Si todos los campos tienen texto, retorna true
+    return true
 }
 
 

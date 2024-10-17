@@ -1,11 +1,12 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,16 +16,13 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
@@ -45,9 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.navOptions
@@ -56,20 +52,26 @@ import coil.request.ImageRequest
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCerrarSesion
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalUpdateApp
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.ItemsMenuLateral
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.DrawerBody
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.DrawerHeader
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.ServicioCard
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
-import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ListaServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.ServiciosViewModel
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.datatransport.runtime.BuildConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+
+import androidx.compose.runtime.*
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +84,6 @@ fun PrincipalScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var showModalCerrarSesion by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.observeAsState(false)
-    var showModal1Boton by remember { mutableStateOf(false) }
     val tokenManager = remember { TokenManager(ctx) }
     val resultado by viewModel.resultado.observeAsState()
     val scope = rememberCoroutineScope() // Crea el alcance de coroutine
@@ -92,6 +93,10 @@ fun PrincipalScreen(
     val phoneNumberDenuncias = "+50369886392"
     val uri = Uri.parse("https://wa.me/${phoneNumberDenuncias.replace("+", "")}")
     var showToastErrorWhats by remember { mutableStateOf(false) }
+    var popNumeroBloqueado by remember { mutableStateOf(false) }
+    var popNuevaActializacion by remember { mutableStateOf(false) }
+
+    val versionLocal = getVersionName(ctx)
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -283,6 +288,16 @@ fun PrincipalScreen(
                                                         }
                                                     }
                                                 }
+                                                4 -> {
+                                                    // solvencia catastral
+
+                                                    navController.navigate(
+                                                        Routes.VistaSolvencias.route) {
+                                                        navOptions {
+                                                            launchSingleTop = true
+                                                        }
+                                                    }
+                                                }
 
                                                 else -> {
                                                     println("Otro tipo de servicio: $idTipoServicio")
@@ -306,7 +321,6 @@ fun PrincipalScreen(
                 }
             }
 
-
             if (showModalCerrarSesion) {
                 CustomModalCerrarSesion(showModalCerrarSesion,
                     stringResource(R.string.cerrar_sesion),
@@ -324,17 +338,30 @@ fun PrincipalScreen(
                     })
             }
 
-            if (showModal1Boton) {
+            if (popNumeroBloqueado) {
                 CustomModal1Boton(
-                    showModal1Boton,
+                    popNumeroBloqueado,
                     stringResource(R.string.numero_bloqueado),
                     onDismiss = {
                         scope.launch {
                             tokenManager.deletePreferences()
-                            showModal1Boton = false
+                            popNumeroBloqueado = false
                             navigateToLogin(navController)
                         }
                     })
+            }
+
+            if(popNuevaActializacion){
+                CustomModalUpdateApp(
+                    showDialog = true,
+                    message = stringResource(id = R.string.nueva_actualizacion),
+                    R.drawable.googleplay,
+                    onDismiss = { popNuevaActializacion = false },
+                    onAccept = {
+                        popNuevaActializacion = false
+                        redireccionGooglePlay(ctx)
+                    }
+                )
             }
 
             if (isLoading) {
@@ -346,6 +373,10 @@ fun PrincipalScreen(
         resultado?.getContentIfNotHandled()?.let { result ->
             when (result.success) {
 
+                1 -> {
+                    // bloqueo de usuario
+                    popNumeroBloqueado = true
+                }
                 2 -> {
                     imageUrls = result.slider.map { sliderItem ->
                         // Construir la URL completa de la imagen
@@ -353,8 +384,13 @@ fun PrincipalScreen(
                     }
 
                     modeloListaServicios = result.tiposervicio
-                }
 
+                    // PARA MOSTRAR MODAL DE NUEVA ACTUALIZACION
+                    if(versionLocal != "N/A" && result.modalandroid == 1){
+                        val isUpdateAvailable = result.versionandroid != versionLocal
+                        if (isUpdateAvailable) { popNuevaActializacion = true }
+                    }
+                }
                 else -> {
                     // Error, mostrar Toast
                     CustomToasty(
@@ -378,62 +414,6 @@ fun PrincipalScreen(
     }
 }
 
-
-@Composable
-fun ServicioCard(servicio: ListaServicio, onClick: (Int, String, String) -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(top = 16.dp, start = 4.dp, end = 4.dp, bottom = 4.dp)
-            .fillMaxWidth()
-            .clickable {
-                onClick(
-                    servicio.tiposervicio,
-                    servicio.nombre,
-                    servicio.descripcion ?: ""
-                )
-            },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White // Color de fondo blanco
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp // Elevación similar a CardView
-        )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data("${RetrofitBuilder.urlImagenes}${servicio.imagen}")
-                    .crossfade(true)
-                    .placeholder(R.drawable.spinloading)
-                    .error(R.drawable.errorcamara)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .heightIn(max = 220.dp)
-                    .padding(top = 8.dp),
-                contentScale = ContentScale.Inside
-            )
-            Text(
-                text = servicio.nombre,
-                textAlign = TextAlign.Center,
-                color = Color.Black,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            )
-        }
-    }
-}
-
-
 // redireccionar a vista login
 private fun navigateToLogin(navController: NavHostController) {
     navController.navigate(Routes.VistaLogin.route) {
@@ -444,52 +424,28 @@ private fun navigateToLogin(navController: NavHostController) {
     }
 }
 
-@Composable
-fun DrawerHeader() {
+private fun redireccionGooglePlay(ctx:Context){
 
-    val systemUiController = rememberSystemUiController()
-    systemUiController.setStatusBarColor(
-        Color.Transparent,
-        darkIcons = true
-    ) // Hace transparente la barra de estado
+    val appPackageName = ctx.packageName
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .statusBarsPadding()
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.fondonorte),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+    try {
+        // Intenta abrir la Play Store directamente
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+        ctx.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        // Si no se puede abrir la Play Store, abre la URL en el navegador
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName"))
+        ctx.startActivity(intent)
     }
 }
 
 
-@Composable
-fun DrawerBody(
-    items: List<ItemsMenuLateral>,
-    onItemClick: (ItemsMenuLateral) -> Unit
-) {
-    Column {
-        items.forEach { item ->
-            NavigationDrawerItem(
-                icon = { Icon(item.icon, contentDescription = null) },
-                label = {
-                    Text(
-                        stringResource(id = item.idString),
-                        fontSize = 16.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                selected = false,
-                onClick = { onItemClick(item) },
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-        }
+// Función auxiliar para obtener el versionName (puedes usarla fuera de composables)
+fun getVersionName(context: Context): String {
+    return try {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        packageInfo.versionName ?: "N/A"
+    } catch (e: PackageManager.NameNotFoundException) {
+        "N/A"
     }
 }

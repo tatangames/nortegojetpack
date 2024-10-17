@@ -53,9 +53,18 @@
     <string name="denuncia_tala_arbol">Denuncias Tála de Árbol</string>
     <string name="nombre">Nombre</string>
     <string name="telefono">Teléfono</string>
-
-
-
+    <string name="direccion">Dirección</string>
+    <string name="nota_opcional_dospuntos">Nota Opcional:</string>
+    <string name="tiene_escrituras">¿Tiene escrituras?</string>
+    <string name="nombre_es_requerido">Nombre es requerido</string>
+    <string name="direccion_es_requerida">Dirección es requerido</string>
+    <string name="solvencia_de_inmueble">Solvencia de Inmueble</string>
+    <string name="solvencia_de_empresa">Solvencia de Empresa</string>
+    <string name="dui_dospuntos">DUI:</string>
+    <string name="dui">DUI</string>
+    <string name="dui_es_requerido">DUI es requerido</string>
+    <string name="solvencia_en_proceso">Su solvencia está en Proceso, podrá retirarla en 24 horas</string>
+    <string name="nueva_actualizacion">"¡Nueva actualización disponible! Descarga ahora para disfrutar de las últimas mejoras.</string>
 
 
 

@@ -175,6 +175,7 @@ fun VistaVerificarNumeroView(
                 CustomModal1Boton(showModal1Boton, modalMensajeString, onDismiss = {showModal1Boton = false})
             }
 
+            // REENVIO DE SMS
             resultadoSMS?.getContentIfNotHandled()?.let { result ->
                 when (result.success) {
                     1 -> {

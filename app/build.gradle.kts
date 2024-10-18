@@ -13,7 +13,7 @@ android {
         minSdk = 25
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.0.1"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -93,10 +93,11 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.0")
 
     implementation("com.google.android.gms:play-services-auth:20.5.0")
-
-
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+
+
+    implementation("id.zelory:compressor:3.0.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

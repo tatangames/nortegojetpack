@@ -68,6 +68,9 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.Regist
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +97,8 @@ fun DenunciaBasicaScreen(
     //var location by remember { mutableStateOf<Location?>(null) }
     var latitudUsuario by remember { mutableStateOf<Double?>(null) }
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -141,7 +146,8 @@ fun DenunciaBasicaScreen(
     // ** CAMARA
     var permisoCamara by remember { mutableStateOf(false) }
 
-    val file = remember { File(context.filesDir, "camera_photo.jpg") }
+    val file = remember { createImageFile(context) }
+
     val uri = remember {
         FileProvider.getUriForFile(
             context,
@@ -149,13 +155,17 @@ fun DenunciaBasicaScreen(
             file
         )
     }
+
+
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            imageUri = uri
+            // Actualizar imageUri después de tomar la foto
+            imageUri = uri // 'uri' debe ser el URI del archivo de imagen creado
         }
     }
+
 
     RequestCameraPermission {
         permisoCamara = true
@@ -211,8 +221,8 @@ fun DenunciaBasicaScreen(
                         .width(250.dp)
                         .align(Alignment.Center)
                         .clickable(
-                            indication = null, // Elimina el efecto de sombreado
-                            interactionSource = remember { MutableInteractionSource() } // Fuente de interacción personalizada
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
                         ) {
                             showBottomSheet = true
                         },
@@ -228,7 +238,6 @@ fun DenunciaBasicaScreen(
                 onValueChange = { viewModel.setNota(it) },
                 label = { Text(stringResource(R.string.nota_opcional)) },
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PhoneNumberVisualTransformation(),
                 textStyle = TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
@@ -254,10 +263,16 @@ fun DenunciaBasicaScreen(
 
                     getLocation()
                     if (imageUri != null) {
-                        viewModel.registrarDenunciaBasicaRetrofit(token, idservicio, context, imageUri!!,
-                            latitudUsuario?.toString() ?: "",
-                            longitudUsuario?.toString() ?: ""
-                        )
+                        coroutineScope.launch {
+                            viewModel.registrarDenunciaBasicaRetrofit(
+                                token,
+                                idservicio,
+                                context,
+                                imageUri!!,
+                                latitudUsuario?.toString() ?: "",
+                                longitudUsuario?.toString() ?: ""
+                            )
+                        }
                     } else {
                         // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
                         showBottomSheet = true
@@ -310,6 +325,7 @@ fun DenunciaBasicaScreen(
                                 if(permisoCamara){
                                     showBottomSheet = false
                                     // Pedir permisos de cámara y lanzar
+
                                     cameraLauncher.launch(uri)
                                 }else{
                                     popPermisoCamaraRequerido = true
@@ -435,5 +451,14 @@ fun DenunciaBasicaScreen(
 }
 
 
+fun createImageFile(context: Context): File {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val imageFileName = "JPEG_${timeStamp}_"
+    return File.createTempFile(
+        imageFileName,
+        ".jpg",
+        context.filesDir
+    )
+}
 
 

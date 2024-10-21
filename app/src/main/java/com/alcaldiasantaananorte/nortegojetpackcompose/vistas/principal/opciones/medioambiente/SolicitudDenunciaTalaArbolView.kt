@@ -4,7 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.location.LocationManager
+import android.media.ExifInterface
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
@@ -73,6 +77,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.Solici
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,7 +113,7 @@ fun SolicitudDenunciaTalaArbolView(
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
 
     var selectedOption by remember { mutableStateOf(0) }
-
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -152,6 +157,8 @@ fun SolicitudDenunciaTalaArbolView(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
+        val correctedBitmap = getRotatedBitmap(context, uri!!)
+        imageBitmap = correctedBitmap
     }
 
     // ** CAMARA
@@ -170,6 +177,8 @@ fun SolicitudDenunciaTalaArbolView(
     ) { success ->
         if (success) {
             imageUri = uri
+            val correctedBitmap = getRotatedBitmap(context, uri)
+            imageBitmap = correctedBitmap
         }
     }
 
@@ -331,7 +340,7 @@ fun SolicitudDenunciaTalaArbolView(
                     )
 
                     ImageBoxSolicitudTala(
-                        imageUri = imageUri,
+                        imageBitmap = imageBitmap,
                         onClick = { showBottomSheetCamara = true },
                         paddingTop = 30.dp, // Ajusta el padding superior aquí.
                         contentDescription = stringResource(R.string.seleccionar_imagen)
@@ -349,7 +358,7 @@ fun SolicitudDenunciaTalaArbolView(
                     )
 
                     ImageBoxSolicitudTala(
-                        imageUri = imageUri,
+                        imageBitmap = imageBitmap,
                         onClick = { showBottomSheetCamara = true },
                         paddingTop = 30.dp, // Ajusta el padding superior aquí.
                         contentDescription = stringResource(R.string.seleccionar_imagen)
@@ -553,6 +562,7 @@ fun SolicitudDenunciaTalaArbolView(
             1 -> {
                 // registro correcto
                 imageUri = null
+                imageBitmap = null
                 viewModelSolicitud.setNombre("")
                 viewModelSolicitud.setTelefono("")
                 viewModelSolicitud.setDireccion("")
@@ -580,6 +590,7 @@ fun SolicitudDenunciaTalaArbolView(
             1 -> {
                 // registro correcto
                 imageUri = null
+                imageBitmap = null
                 viewModelSolicitud.setNota("")
 
                 CustomToasty(
@@ -630,3 +641,28 @@ fun verificarSolicitud(context: Context, nombre: String, telefono: String, direc
 }
 
 
+
+fun getRotatedBitmap(context: Context, uri: Uri): Bitmap? {
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+    val bitmap = BitmapFactory.decodeStream(inputStream)
+    inputStream?.close()
+
+    // Obtener orientación EXIF
+    val exif = ExifInterface(context.contentResolver.openInputStream(uri)!!)
+    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+    // Corregir la orientación del bitmap
+    return when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> rotateImage(bitmap, 90)
+        ExifInterface.ORIENTATION_ROTATE_180 -> rotateImage(bitmap, 180)
+        ExifInterface.ORIENTATION_ROTATE_270 -> rotateImage(bitmap, 270)
+        else -> bitmap
+    }
+}
+
+// Función para rotar la imagen
+private fun rotateImage(source: Bitmap, angle: Int): Bitmap {
+    val matrix = Matrix()
+    matrix.postRotate(angle.toFloat())
+    return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+}

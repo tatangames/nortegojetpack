@@ -71,7 +71,17 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
+import android.media.ExifInterface
+import android.provider.MediaStore
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,6 +109,8 @@ fun DenunciaBasicaScreen(
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
+
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -141,6 +153,8 @@ fun DenunciaBasicaScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
+        val correctedBitmap = getRotatedBitmap(context, uri!!)
+        imageBitmap = correctedBitmap
     }
 
     // ** CAMARA
@@ -163,6 +177,8 @@ fun DenunciaBasicaScreen(
         if (success) {
             // Actualizar imageUri después de tomar la foto
             imageUri = uri // 'uri' debe ser el URI del archivo de imagen creado
+            val correctedBitmap = getRotatedBitmap(context, uri)
+            imageBitmap = correctedBitmap
         }
     }
 
@@ -209,25 +225,44 @@ fun DenunciaBasicaScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp)
+                    .height(250.dp)
                     .padding(top = 0.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                AsyncImage(
-                    model = imageUri ?: R.drawable.camarafoto,
-                    contentDescription = stringResource(R.string.seleccionar_imagen),
-                    modifier = Modifier
-                        .height(250.dp)
-                        .width(250.dp)
-                        .align(Alignment.Center)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            showBottomSheet = true
-                        },
-                    contentScale = ContentScale.Crop
-                )
+                if (imageBitmap != null) {
+                    Image(
+                        bitmap = imageBitmap!!.asImageBitmap(), // Convierte Bitmap a ImageBitmap
+                        contentDescription = stringResource(R.string.seleccionar_imagen),
+                        modifier = Modifier
+                            .height(225.dp)
+                            .width(225.dp)
+                            .align(Alignment.Center)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                showBottomSheet = true
+                            },
+                        contentScale = ContentScale.Inside
+                    )
+                } else {
+                    AsyncImage(
+                        model = R.drawable.camarafoto,
+                        contentDescription = stringResource(R.string.seleccionar_imagen),
+                        modifier = Modifier
+                            .height(200.dp)
+                            .width(200.dp)
+                            .align(Alignment.Center)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                showBottomSheet = true
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -432,6 +467,7 @@ fun DenunciaBasicaScreen(
             2 -> {
                 // denuncia registrada
                 imageUri = null
+                imageBitmap = null
                 viewModel.setNota("")
                 CustomToasty(
                     ctx,
@@ -462,3 +498,27 @@ fun createImageFile(context: Context): File {
 }
 
 
+fun getRotatedBitmap(context: Context, uri: Uri): Bitmap? {
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+    val bitmap = BitmapFactory.decodeStream(inputStream)
+    inputStream?.close()
+
+    // Obtener orientación EXIF
+    val exif = ExifInterface(context.contentResolver.openInputStream(uri)!!)
+    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+    // Corregir la orientación del bitmap
+    return when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> rotateImage(bitmap, 90)
+        ExifInterface.ORIENTATION_ROTATE_180 -> rotateImage(bitmap, 180)
+        ExifInterface.ORIENTATION_ROTATE_270 -> rotateImage(bitmap, 270)
+        else -> bitmap
+    }
+}
+
+// Función para rotar la imagen
+private fun rotateImage(source: Bitmap, angle: Int): Bitmap {
+    val matrix = Matrix()
+    matrix.postRotate(angle.toFloat())
+    return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+}

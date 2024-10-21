@@ -1,6 +1,7 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.componentes
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -46,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -453,7 +455,7 @@ fun BarraToolbarColor(navController: NavController, titulo: String, backgroundCo
 
 @Composable
 fun ImageBoxSolicitudTala(
-    imageUri: Any?, // Puede ser un Int (para drawable) o Uri.
+    imageBitmap: Bitmap?, // Puede ser un Int (para drawable) o Uri.
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     boxHeight: Dp = 200.dp,
@@ -468,19 +470,40 @@ fun ImageBoxSolicitudTala(
             .padding(top = paddingTop),
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
-            model = imageUri ?: R.drawable.camarafoto,
-            contentDescription = contentDescription,
-            modifier = Modifier
-                .size(imageSize)
-                .clickable(
-                    indication = null, // Elimina el efecto de sombreado.
-                    interactionSource = remember { MutableInteractionSource() } // Fuente de interacción personalizada.
-                ) {
-                    onClick()
-                },
-            contentScale = ContentScale.Crop
-        )
+
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap!!.asImageBitmap(), // Convierte Bitmap a ImageBitmap
+                contentDescription = stringResource(R.string.seleccionar_imagen),
+                modifier = Modifier
+                    .height(225.dp)
+                    .width(225.dp)
+                    .align(Alignment.Center)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onClick()
+                    },
+                contentScale = ContentScale.Inside
+            )
+        } else {
+            AsyncImage(
+                model = R.drawable.camarafoto,
+                contentDescription = stringResource(R.string.seleccionar_imagen),
+                modifier = Modifier
+                    .height(200.dp)
+                    .width(200.dp)
+                    .align(Alignment.Center)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        onClick()
+                    },
+                contentScale = ContentScale.Inside
+            )
+        }
     }
 }
 

@@ -65,12 +65,10 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.ServiciosViewModel
-import com.google.android.datatransport.runtime.BuildConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-
-import androidx.compose.runtime.*
+import com.onesignal.OneSignal;
 
 
 
@@ -95,14 +93,16 @@ fun PrincipalScreen(
     var showToastErrorWhats by remember { mutableStateOf(false) }
     var popNumeroBloqueado by remember { mutableStateOf(false) }
     var popNuevaActializacion by remember { mutableStateOf(false) }
+    var oneSignalUserId by remember { mutableStateOf("") }
 
     val versionLocal = getVersionName(ctx)
+
 
     LaunchedEffect(Unit) {
         scope.launch {
             val _token = tokenManager.userToken.first()
-            val _idusuario = tokenManager.idUsuario.first()
-            viewModel.serviciosRetrofit(_token, _idusuario)
+            val idonesignal = getOneSignalUserId()
+            viewModel.serviciosRetrofit(_token, idonesignal)
         }
     }
 
@@ -448,4 +448,9 @@ fun getVersionName(context: Context): String {
     } catch (e: PackageManager.NameNotFoundException) {
         "N/A"
     }
+}
+
+fun getOneSignalUserId(): String {
+    val deviceState = OneSignal.User.pushSubscription.id
+    return deviceState
 }

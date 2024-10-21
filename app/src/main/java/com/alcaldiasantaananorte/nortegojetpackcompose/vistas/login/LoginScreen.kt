@@ -200,6 +200,12 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                     navController.navigate(Routes.VistaVerificarNumero.createRoute(telefono, segundos))
                 }
             }
+            100 -> {
+                // SOLO PARA DESARROLLO
+                CustomToasty(ctx, "Aplicación en Desarrollo", ToastType.ERROR)
+            }
+
+
             else -> {
                 // Error, mostrar Toast
                 CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)

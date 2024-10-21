@@ -292,6 +292,9 @@ fun SolvenciaView(
                     ToastType.SUCCESS
                 )
 
+                viewModel.setNombre("")
+                viewModel.setDui("")
+
                 showModal1Boton = true
             }
             else -> {

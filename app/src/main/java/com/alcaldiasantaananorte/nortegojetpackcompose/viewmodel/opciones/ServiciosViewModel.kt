@@ -21,13 +21,12 @@ class ServiciosViewModel() : ViewModel() {
     private var disposable: Disposable? = null
     private var isRequestInProgress = false
 
-    fun serviciosRetrofit(token: String, idusuario: String) {
+    fun serviciosRetrofit(token: String, onesignal: String) {
         if (isRequestInProgress) return
 
         isRequestInProgress = true
-
         _isLoading.value = true
-        disposable = RetrofitBuilder.getAuthenticatedApiService(token).listadoServicios(idusuario)
+        disposable = RetrofitBuilder.getAuthenticatedApiService(token).listadoServicios(onesignal)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .retry()

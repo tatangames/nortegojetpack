@@ -37,7 +37,8 @@ interface ApiService {
     // LISTADO DE SERVICIOS
     @POST("app/principal/listado")
     @FormUrlEncoded
-    fun listadoServicios(@Field("id") idusuario: String): Single<ModeloListaServicios>
+    fun listadoServicios(@Field("onesignal") onesignal: String?,
+                         ): Single<ModeloListaServicios>
 
     // LISTADO DE SOLICITUDES
     @POST("app/solicitudes/listado")

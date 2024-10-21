@@ -1,17 +1,9 @@
-package com.alcaldiasantaananorte.nortegojetpackcompose.clases
+package com.alcaldiasantaananorte.nortegojetpackcompose.extras
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.provider.Telephony
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 
 class SMSReceiver : BroadcastReceiver() {
     var onCodeReceived: ((String) -> Unit)? = null

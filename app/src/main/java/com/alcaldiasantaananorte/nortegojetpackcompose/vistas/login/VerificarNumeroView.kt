@@ -45,7 +45,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.alcaldiasantaananorte.nortegojetpackcompose.clases.SMSReceiver
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.SMSReceiver
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty

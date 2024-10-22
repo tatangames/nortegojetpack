@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -93,7 +94,6 @@ fun PrincipalScreen(
     var showToastErrorWhats by remember { mutableStateOf(false) }
     var popNumeroBloqueado by remember { mutableStateOf(false) }
     var popNuevaActializacion by remember { mutableStateOf(false) }
-    var oneSignalUserId by remember { mutableStateOf("") }
 
     val versionLocal = getVersionName(ctx)
 
@@ -163,6 +163,7 @@ fun PrincipalScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                  //  .statusBarsPadding()
             ) {
                 // Sección para el HorizontalPager
                 if (imageUrls.isNotEmpty()) {
@@ -174,6 +175,7 @@ fun PrincipalScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(200.dp)
+                                    .padding(top = 16.dp)
                             ) { page ->
                                 Box(
                                     modifier = Modifier.fillMaxSize(),

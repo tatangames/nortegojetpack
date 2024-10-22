@@ -101,13 +101,14 @@ fun DenunciaBasicaScreen(
     val resultado by viewModel.resultado.observeAsState()
     val tokenManager = remember { TokenManager(ctx) }
     var popPermisoCamaraRequerido by remember { mutableStateOf(false) }
+    var popPermisoGPS by remember { mutableStateOf(false) }
     var popDenunciaPendiente by remember { mutableStateOf(false) }
+    var hayPermisoGps by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf("") }
 
     //var location by remember { mutableStateOf<Location?>(null) }
     var latitudUsuario by remember { mutableStateOf<Double?>(null) }
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
-
     val coroutineScope = rememberCoroutineScope()
 
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -120,6 +121,7 @@ fun DenunciaBasicaScreen(
             == PackageManager.PERMISSION_GRANTED) {
 
             val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            hayPermisoGps = true
 
             lastKnownLocation?.let {
                 latitudUsuario = it.latitude
@@ -137,8 +139,10 @@ fun DenunciaBasicaScreen(
     SolicitarPermisosUbicacion(
         onPermisosConcedidos = {
             getLocation()
+            hayPermisoGps = true
         },
         onPermisosDenegados = {
+            hayPermisoGps = false
         }
     )
 
@@ -295,22 +299,26 @@ fun DenunciaBasicaScreen(
 
             Button(
                 onClick = {
-
                     getLocation()
-                    if (imageUri != null) {
-                        coroutineScope.launch {
-                            viewModel.registrarDenunciaBasicaRetrofit(
-                                token,
-                                idservicio,
-                                context,
-                                imageUri!!,
-                                latitudUsuario?.toString() ?: "",
-                                longitudUsuario?.toString() ?: ""
-                            )
+
+                    if(hayPermisoGps){
+                        if (imageUri != null) {
+                            coroutineScope.launch {
+                                viewModel.registrarDenunciaBasicaRetrofit(
+                                    token,
+                                    idservicio,
+                                    context,
+                                    imageUri!!,
+                                    latitudUsuario?.toString() ?: "",
+                                    longitudUsuario?.toString() ?: ""
+                                )
+                            }
+                        } else {
+                            // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
+                            showBottomSheet = true
                         }
-                    } else {
-                        // Mostrar un mensaje de error o un diálogo indicando que se necesita una imagen
-                        showBottomSheet = true
+                    }else{
+                        popPermisoGPS = true
                     }
                 },
                 modifier = Modifier
@@ -359,8 +367,6 @@ fun DenunciaBasicaScreen(
                             onClick = {
                                 if(permisoCamara){
                                     showBottomSheet = false
-                                    // Pedir permisos de cámara y lanzar
-
                                     cameraLauncher.launch(uri)
                                 }else{
                                     popPermisoCamaraRequerido = true
@@ -408,19 +414,18 @@ fun DenunciaBasicaScreen(
                 }
             }
 
+
+
             if (popPermisoCamaraRequerido) {
                 AlertDialog(
                     onDismissRequest = { popPermisoCamaraRequerido = false },
                     title = { Text(stringResource(R.string.permiso_de_camara_requerido)) },
-                    text = { Text(stringResource(R.string.para_usar_esta_funcion)) },
+                    text = { Text(stringResource(R.string.para_usar_esta_funcion_camara)) },
                     confirmButton = {
                         Button(
                             onClick = {
                                 popPermisoCamaraRequerido = false
-                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", context.packageName, null)
-                                }
-                                context.startActivity(intent)
+                                redireccionarAjustes(context)
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ColorAzulGob,
@@ -434,6 +439,41 @@ fun DenunciaBasicaScreen(
                         Button(
                             onClick = {
                                 popPermisoCamaraRequerido = false
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorGris1Gob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.cancelar))
+                        }
+                    }
+                )
+            }
+
+            if(popPermisoGPS){
+                AlertDialog(
+                    onDismissRequest = { popPermisoGPS = false },
+                    title = { Text(stringResource(R.string.permiso_gps_requerido)) },
+                    text = { Text(stringResource(R.string.para_usar_esta_funcion_gps)) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                popPermisoGPS = false
+                                redireccionarAjustes(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.ir_a_ajustes))
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                popPermisoGPS = false
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ColorGris1Gob,
@@ -487,6 +527,14 @@ fun DenunciaBasicaScreen(
 }
 
 
+fun redireccionarAjustes(context: Context){
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.fromParts("package", context.packageName, null)
+    }
+    context.startActivity(intent)
+}
+
+
 fun createImageFile(context: Context): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val imageFileName = "JPEG_${timeStamp}_"
@@ -496,7 +544,6 @@ fun createImageFile(context: Context): File {
         context.filesDir
     )
 }
-
 
 fun getRotatedBitmap(context: Context, uri: Uri): Bitmap? {
     val inputStream: InputStream? = context.contentResolver.openInputStream(uri)

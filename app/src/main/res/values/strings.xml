@@ -40,7 +40,7 @@
     <string name="opciones">Opciones</string>
     <string name="seleccionar_imagen">Seleccionar Imagen</string>
     <string name="permiso_de_camara_requerido">Permiso de cámara requerido</string>
-    <string name="para_usar_esta_funcion">Para usar esta función, necesitas conceder permiso a la cámara en los ajustes de la aplicación.</string>
+    <string name="para_usar_esta_funcion_camara">Para usar esta función, necesitas conceder permiso a la cámara en los ajustes de la aplicación.</string>
     <string name="ir_a_ajustes">Ir a Ajustes</string>
     <string name="nota_opcional">Nota opcional</string>
     <string name="permisos_ubicacion_denegados">Permiso de ubicación denegado</string>
@@ -65,8 +65,8 @@
     <string name="dui_es_requerido">DUI es requerido</string>
     <string name="solvencia_en_proceso">Su solvencia está en Proceso, podrá retirarla en 24 horas</string>
     <string name="nueva_actualizacion">"¡Nueva actualización disponible! Descarga ahora para disfrutar de las últimas mejoras.</string>
-
-
+    <string name="permiso_gps_requerido">Permiso GPS requerido</string>
+    <string name="para_usar_esta_funcion_gps">Para usar esta función, necesitas conceder permiso GPS en los ajustes de la aplicación.</string>
 
 </resources>
 

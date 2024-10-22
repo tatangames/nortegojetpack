@@ -74,6 +74,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.DenunciaTalaArbolViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.SolicitudTalaArbolViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.denuncias.redireccionarAjustes
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
@@ -108,10 +109,10 @@ fun SolicitudDenunciaTalaArbolView(
     val telefono by viewModelSolicitud.telefono.observeAsState("")
     val direccion by viewModelSolicitud.direccion.observeAsState("")
     var isChecked by remember { mutableStateOf(false) }
-
+    var hayPermisoGps by remember { mutableStateOf(false) }
     var latitudUsuario by remember { mutableStateOf<Double?>(null) }
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
-
+    var popPermisoGPS by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf(0) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -123,6 +124,8 @@ fun SolicitudDenunciaTalaArbolView(
             == PackageManager.PERMISSION_GRANTED) {
 
             val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+
+            hayPermisoGps = true
 
             lastKnownLocation?.let {
                 latitudUsuario = it.latitude
@@ -140,8 +143,10 @@ fun SolicitudDenunciaTalaArbolView(
     SolicitarPermisosUbicacion(
         onPermisosConcedidos = {
             getLocation()
+            hayPermisoGps = true
         },
         onPermisosDenegados = {
+            hayPermisoGps = false
         }
     )
 
@@ -388,34 +393,39 @@ fun SolicitudDenunciaTalaArbolView(
 
             Button(
                 onClick = {
+
                     getLocation()
-                    if (imageUri != null) {
 
-                        if(selectedOption == 0){
+                    if(hayPermisoGps){
+                        if (imageUri != null) {
 
-                            val isSolicitudCompleta = verificarSolicitud(context, nombre, telefono, direccion)
-                            val valorCheckEscritura: Int = if (isChecked) 1 else 0 // solo para medio ambiente
+                            if(selectedOption == 0){
 
-                            if (isSolicitudCompleta) {
-                                viewModelSolicitud.registrarSolicitudTalaArbolRX(token,
+                                val isSolicitudCompleta = verificarSolicitud(context, nombre, telefono, direccion)
+                                val valorCheckEscritura: Int = if (isChecked) 1 else 0 // solo para medio ambiente
+
+                                if (isSolicitudCompleta) {
+                                    viewModelSolicitud.registrarSolicitudTalaArbolRX(token,
+                                        context, imageUri!!,
+                                        valorCheckEscritura.toString(),
+                                        latitudUsuario?.toString() ?: "",
+                                        longitudUsuario?.toString() ?: ""
+                                    )
+                                }
+                            }else{
+                                viewModelDenuncia.registrarDenunciaTalaArbolRX(token,
                                     context, imageUri!!,
-                                    valorCheckEscritura.toString(),
+                                    idCliente,
                                     latitudUsuario?.toString() ?: "",
-                                    longitudUsuario?.toString() ?: ""
+                                    longitudUsuario?.toString() ?: "",
+                                    nota
                                 )
                             }
-                        }else{
-                            viewModelDenuncia.registrarDenunciaTalaArbolRX(token,
-                                context, imageUri!!,
-                                idCliente,
-                                latitudUsuario?.toString() ?: "",
-                                longitudUsuario?.toString() ?: "",
-                                nota
-                            )
+                        } else {
+                            showBottomSheetCamara = true
                         }
-
-                    } else {
-                        showBottomSheetCamara = true
+                    }else{
+                        popPermisoGPS = true
                     }
                 },
                 modifier = Modifier
@@ -516,7 +526,7 @@ fun SolicitudDenunciaTalaArbolView(
                 AlertDialog(
                     onDismissRequest = { popPermisoCamaraRequerido = false },
                     title = { Text(stringResource(R.string.permiso_de_camara_requerido)) },
-                    text = { Text(stringResource(R.string.para_usar_esta_funcion)) },
+                    text = { Text(stringResource(R.string.para_usar_esta_funcion_camara)) },
                     confirmButton = {
                         Button(
                             onClick = {
@@ -538,6 +548,42 @@ fun SolicitudDenunciaTalaArbolView(
                         Button(
                             onClick = {
                                 popPermisoCamaraRequerido = false
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorGris1Gob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.cancelar))
+                        }
+                    }
+                )
+            }
+
+
+            if(popPermisoGPS){
+                AlertDialog(
+                    onDismissRequest = { popPermisoGPS = false },
+                    title = { Text(stringResource(R.string.permiso_gps_requerido)) },
+                    text = { Text(stringResource(R.string.para_usar_esta_funcion_gps)) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                popPermisoGPS = false
+                                redireccionarAjustes(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ColorAzulGob,
+                                contentColor = ColorBlancoGob
+                            )
+                        ){
+                            Text(stringResource(R.string.ir_a_ajustes))
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                popPermisoGPS = false
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ColorGris1Gob,

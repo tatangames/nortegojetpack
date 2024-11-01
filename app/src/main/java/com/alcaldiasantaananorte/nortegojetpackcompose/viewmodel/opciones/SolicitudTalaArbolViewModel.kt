@@ -13,7 +13,9 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.http.Part
 import java.io.IOException
 
 class SolicitudTalaArbolViewModel : ViewModel() {
@@ -104,13 +106,12 @@ class SolicitudTalaArbolViewModel : ViewModel() {
 
                 disposable = RetrofitBuilder.getAuthenticatedApiService(token).registrarSolicitudTalaArbol(imagePart,
                     nombreRequestBody,
-                    direccionRequestBody,
                     telefonoRequestBody,
+                    direccionRequestBody,
                     escrituraRequestBody,
                     notaRequestBody,
                     latitud,
                     longitud)
-
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .retry(3)

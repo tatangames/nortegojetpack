@@ -199,10 +199,10 @@ fun DenunciaBasicaScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
+                .padding(innerPadding) // Aplica el padding generado por el Scaffold
+                .padding(16.dp) // Aplica un padding adicional de 16.dp
                 .verticalScroll(rememberScrollState()) // Hacer la vista desplazable
-                .imePadding(), // Ajustar al teclado
+                .imePadding(), // Ajustar al teclado si se muestra
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {

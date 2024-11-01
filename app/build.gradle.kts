@@ -12,7 +12,7 @@ android {
         applicationId = "com.santaananortemetapan.nortego"
         minSdk = 25
         targetSdk = 34
-        versionCode = 1
+        versionCode = 3
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -96,7 +96,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("id.zelory:compressor:3.0.1")
 
     testImplementation(libs.junit)

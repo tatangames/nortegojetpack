@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -448,7 +449,9 @@ fun BarraToolbarColor(navController: NavController, titulo: String, backgroundCo
             titleContentColor = Color.White, // Color del título
             actionIconContentColor = Color.White // Color de las acciones
         ),
-        modifier = Modifier.height(56.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = 56.dp) // Define una altura mínima
     )
 }
 

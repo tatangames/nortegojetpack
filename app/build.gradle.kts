@@ -96,7 +96,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("id.zelory:compressor:3.0.1")
 
     testImplementation(libs.junit)

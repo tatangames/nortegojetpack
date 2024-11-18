@@ -75,12 +75,16 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.DenunciaTalaArbolViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.SolicitudTalaArbolViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.denuncias.redireccionarAjustes
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun SolicitudDenunciaTalaArbolView(
     navController: NavController,
@@ -166,8 +170,36 @@ fun SolicitudDenunciaTalaArbolView(
         imageBitmap = correctedBitmap
     }
 
-    // ** CAMARA
-    var permisoCamara by remember { mutableStateOf(false) }
+
+
+
+    val cameraPermission = Manifest.permission.CAMERA
+    val permissionStateCamara = rememberPermissionState(permission = cameraPermission)
+
+    LaunchedEffect(Unit) {
+        if (!permissionStateCamara.status.isGranted) {
+            permissionStateCamara.launchPermissionRequest()
+        }
+    }
+
+    when {
+        permissionStateCamara.status.isGranted -> {
+            // Si el permiso está otorgado
+            //  Log.d("PERMISO", "permisio camara aceptado")
+        }
+        permissionStateCamara.status.shouldShowRationale -> {
+            // Si el usuario rechazó el permiso previamente
+            // Log.d("PERMISO", "necesitamos acceso a la camara para continuar")
+        }
+        else -> {
+            // Log.d("PERMISO", "esperando respuesta")
+        }
+    }
+
+
+
+
+
 
     val file = remember { File(context.filesDir, "camera_photo.jpg") }
     val uri = remember {
@@ -187,9 +219,6 @@ fun SolicitudDenunciaTalaArbolView(
         }
     }
 
-    RequestCameraPermission {
-        permisoCamara = true
-    }
 
     Scaffold(
         topBar = {
@@ -472,7 +501,7 @@ fun SolicitudDenunciaTalaArbolView(
                         // Botón para abrir la cámara
                         Button(
                             onClick = {
-                                if(permisoCamara){
+                                if(permissionStateCamara.status.isGranted){
                                     showBottomSheetCamara = false
                                     // Pedir permisos de cámara y lanzar
                                     cameraLauncher.launch(uri)

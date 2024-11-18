@@ -81,9 +81,13 @@ import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.media.ExifInterface
 import android.provider.MediaStore
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import java.io.InputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun DenunciaBasicaScreen(
     idservicio: Int, titulo: String,
@@ -146,6 +150,35 @@ fun DenunciaBasicaScreen(
         }
     )
 
+
+    val cameraPermission = Manifest.permission.CAMERA
+    val permissionStateCamara = rememberPermissionState(permission = cameraPermission)
+
+    LaunchedEffect(Unit) {
+        if (!permissionStateCamara.status.isGranted) {
+            permissionStateCamara.launchPermissionRequest()
+        }
+    }
+
+    when {
+        permissionStateCamara.status.isGranted -> {
+            // Si el permiso está otorgado
+          //  Log.d("PERMISO", "permisio camara aceptado")
+        }
+        permissionStateCamara.status.shouldShowRationale -> {
+            // Si el usuario rechazó el permiso previamente
+           // Log.d("PERMISO", "necesitamos acceso a la camara para continuar")
+        }
+        else -> {
+           // Log.d("PERMISO", "esperando respuesta")
+        }
+    }
+
+
+
+
+
+
     // Lanzar la solicitud cuando se carga la pantalla
     LaunchedEffect(Unit) {
         scope.launch {
@@ -161,8 +194,6 @@ fun DenunciaBasicaScreen(
         imageBitmap = correctedBitmap
     }
 
-    // ** CAMARA
-    var permisoCamara by remember { mutableStateOf(false) }
 
     val file = remember { createImageFile(context) }
 
@@ -187,9 +218,7 @@ fun DenunciaBasicaScreen(
     }
 
 
-    RequestCameraPermission {
-        permisoCamara = true
-    }
+
 
     Scaffold(
         topBar = {
@@ -365,7 +394,7 @@ fun DenunciaBasicaScreen(
                         // Botón para abrir la cámara
                         Button(
                             onClick = {
-                                if(permisoCamara){
+                                if(permissionStateCamara.status.isGranted){
                                     showBottomSheet = false
                                     cameraLauncher.launch(uri)
                                 }else{

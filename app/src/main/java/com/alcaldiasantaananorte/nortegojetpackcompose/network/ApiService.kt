@@ -20,7 +20,9 @@ interface ApiService {
     // VERIFICACION DE NUMERO
     @POST("app/verificacion/telefono")
     @FormUrlEncoded
-    fun verificarTelefono(@Field("telefono") telefono: String): Single<ModeloVerificacion>
+    fun verificarTelefono(@Field("telefono") telefono: String,
+                          @Field("device") device: Int
+                          ): Single<ModeloVerificacion>
 
     // REINTENTO SMS
     @POST("app/reintento/telefono")

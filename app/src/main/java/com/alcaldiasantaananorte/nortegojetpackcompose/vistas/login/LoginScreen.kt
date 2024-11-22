@@ -1,5 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
+import android.Manifest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +52,12 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.login.LoginViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = viewModel()) {
 
@@ -70,6 +77,34 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
     val fontMonserratMedium = FontFamily(
         Font(R.font.montserratmedium)
     )
+
+
+
+    val smsPermission = Manifest.permission.RECEIVE_SMS
+    val permissionStateSMS= rememberPermissionState(permission = smsPermission)
+
+    LaunchedEffect(Unit) {
+        if (!permissionStateSMS.status.isGranted) {
+            permissionStateSMS.launchPermissionRequest()
+        }
+    }
+
+    when {
+        permissionStateSMS.status.isGranted -> {
+            // Si el permiso está otorgado
+            //  Log.d("PERMISO", "permisio camara aceptado")
+        }
+        permissionStateSMS.status.shouldShowRationale -> {
+            // Si el usuario rechazó el permiso previamente
+            // Log.d("PERMISO", "necesitamos acceso a la camara para continuar")
+        }
+        else -> {
+            // Log.d("PERMISO", "esperando respuesta")
+        }
+    }
+
+
+
 
     Box(
         modifier = Modifier

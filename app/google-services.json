@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "697812221943",
     "project_id": "nortego-41cf5",
-    "storage_bucket": "nortego-41cf5.appspot.com"
+    "storage_bucket": "nortego-41cf5.firebasestorage.app"
   },
   "client": [
     {
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAQJqDyPMtxLSiMMwnZ36q4Xlo0nIHRJkA"
+          "current_key": "AIzaSyBJ4r7oK8HCQfKzSQrooFVeo48SbwpwcKQ"
         }
       ],
       "services": {

@@ -102,11 +102,11 @@ fun SolvenciaView(
                 longitudUsuario = it.longitude
             } ?: run {
                 // Manejar el caso donde lastKnownLocation es nulo
-                Log.d("Location", "No se pudo obtener la ubicación")
+               // Log.d("Location", "No se pudo obtener la ubicación")
             }
         } else {
             // Manejar el caso donde no se tienen los permisos de ubicación
-            Log.d("Location", "No se tienen los permisos de ubicación")
+           // Log.d("Location", "No se tienen los permisos de ubicación")
         }
     }
 
@@ -259,7 +259,7 @@ fun SolvenciaView(
                 ),
             ) {
                 Text(
-                    text = stringResource(id = R.string.enviar_denuncia),
+                    text =  stringResource(id = R.string.enviar_solicitud),
                     fontSize = 18.sp,
                     style = TextStyle(
                         fontSize = 20.sp,

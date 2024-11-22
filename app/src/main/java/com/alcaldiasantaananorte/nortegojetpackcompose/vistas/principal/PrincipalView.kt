@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.navOptions
 import coil.compose.AsyncImage
@@ -65,6 +68,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.extras.itemsMenu
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
+import com.alcaldiasantaananorte.nortegojetpackcompose.providers.AuthProvider
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.ServiciosViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -94,9 +98,10 @@ fun PrincipalScreen(
     var showToastErrorWhats by remember { mutableStateOf(false) }
     var popNumeroBloqueado by remember { mutableStateOf(false) }
     var popNuevaActializacion by remember { mutableStateOf(false) }
+    val popErrorLoginFirebase = remember { mutableStateOf(false) }
 
     val versionLocal = getVersionName(ctx)
-
+    val authProvider = AuthProvider()
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -300,9 +305,28 @@ fun PrincipalScreen(
                                                         }
                                                     }
                                                 }
+                                                5 -> {
+                                                    // MAPA RECOLECTORES
+                                                    if (authProvider.auth.currentUser != null) {
+                                                        // Intentar obtener un token válido
+                                                        authProvider.auth.currentUser?.getIdToken(true)
+                                                            ?.addOnCompleteListener { tokenTask ->
+                                                                if (tokenTask.isSuccessful) {
+                                                                    // Token válido, redirigir al mapa
+                                                                    redireccionarMapaMotoristas(navController)
+                                                                } else {
+                                                                    // El token no es válido, registrar un nuevo usuario anónimo
+                                                                    iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+                                                                }
+                                                            }
+                                                    } else {
+                                                        // El usuario no está autenticado, registrar un nuevo usuario anónimo
+                                                        iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+                                                    }
+                                                }
 
                                                 else -> {
-                                                    println("Otro tipo de servicio: $idTipoServicio")
+                                                    popNuevaActializacion = true
                                                 }
                                             }
 
@@ -322,6 +346,20 @@ fun PrincipalScreen(
                     }
                 }
             }
+
+
+            if(popErrorLoginFirebase.value){
+                CustomModal1Boton(
+                    popErrorLoginFirebase.value,
+                    stringResource(R.string.error_login_firebase),
+                    onDismiss = {
+                        scope.launch {
+                            popErrorLoginFirebase.value = false
+                        }
+                    })
+            }
+
+
 
             if (showModalCerrarSesion) {
                 CustomModalCerrarSesion(showModalCerrarSesion,
@@ -412,6 +450,40 @@ fun PrincipalScreen(
                 ToastType.ERROR
             )
             showToastErrorWhats = true
+        }
+    }
+}
+
+
+private fun iniciarSesionAnonima(
+    authProvider: AuthProvider,
+    navController: NavHostController,
+    viewModel: ServiciosViewModel,
+    popErrorLoginFirebase: MutableState<Boolean>
+) {
+    viewModel.setLoading(loading = true)
+
+    authProvider.registroAnonimo()
+        .addOnCompleteListener { task ->
+            viewModel.setLoading(loading = false)
+
+            if (task.isSuccessful) {
+                // Registro correcto, redirigir al mapa
+                redireccionarMapaMotoristas(navController)
+            } else {
+                // Mostrar un error
+                popErrorLoginFirebase.value = true
+            }
+        }
+}
+
+
+
+fun redireccionarMapaMotoristas(navController: NavHostController){
+    navController.navigate(
+        Routes.VistaMotoristas.route) {
+        navOptions {
+            launchSingleTop = true
         }
     }
 }

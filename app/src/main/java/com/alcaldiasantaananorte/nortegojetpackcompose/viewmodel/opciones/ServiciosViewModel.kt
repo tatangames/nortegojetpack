@@ -21,6 +21,11 @@ class ServiciosViewModel() : ViewModel() {
     private var disposable: Disposable? = null
     private var isRequestInProgress = false
 
+    fun setLoading(loading: Boolean) {
+        _isLoading.value = loading
+    }
+
+
     fun serviciosRetrofit(token: String, onesignal: String) {
         if (isRequestInProgress) return
 

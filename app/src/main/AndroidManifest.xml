@@ -57,6 +57,11 @@
             android:name="com.onesignal.NotificationIcon"
             android:resource="@drawable/ic_stat_onesignal_default" />
 
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBYZXzeRQ1GpaeJr1Q5jFm08cxBPi_ZpEQ" />
+
     </application>
 
 </manifest>

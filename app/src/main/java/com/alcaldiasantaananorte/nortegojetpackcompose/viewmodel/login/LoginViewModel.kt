@@ -35,7 +35,8 @@ class LoginViewModel : ViewModel() {
         isRequestInProgress = true
         _isLoading.value = true
 
-        disposable = RetrofitBuilder.getApiService().verificarTelefono(_telefono.value!!)
+        // EL DEVICE IDENTIFICA QUE ESTOY MANDANDO SOLICITUD DESDE ANDROID
+        disposable = RetrofitBuilder.getApiService().verificarTelefono(_telefono.value!!, 1)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(

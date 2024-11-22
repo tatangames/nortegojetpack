@@ -467,7 +467,8 @@ fun SolicitudDenunciaTalaArbolView(
                 ),
             ) {
                 Text(
-                    text = stringResource(id = R.string.enviar_denuncia),
+                    text = if(selectedOption == 0) {stringResource(id = R.string.enviar_solicitud)} else {
+                        stringResource(id = R.string.enviar_denuncia)},
                     fontSize = 18.sp,
                     style = TextStyle(
                         fontSize = 20.sp,

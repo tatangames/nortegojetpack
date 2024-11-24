@@ -69,9 +69,7 @@
     <string name="para_usar_esta_funcion_gps">Para usar esta función, necesitas conceder permiso GPS en los ajustes de la aplicación.</string>
     <string name="enviar_solicitud">Enviar Solicitud</string>
     <string name="error_login_firebase">Error al abrir el Mapa, reintentar de nuevo</string>
-
-
-
+    <string name="no_hay_recolectores_disponibles">No hay Recolectores Disponibles</string>
 
 
 </resources>

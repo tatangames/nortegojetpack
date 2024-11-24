@@ -4,7 +4,8 @@ import com.google.android.gms.maps.model.LatLng
 
 class DriverLocation(
     var id: String? = null,
-    var latlng: LatLng? = null
+    var latlng: LatLng? = null,
+    var description: String? = null
 ) {
 
 }

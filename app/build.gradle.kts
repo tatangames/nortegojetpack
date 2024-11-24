@@ -121,7 +121,17 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore")
+
     implementation("com.github.imperiumlabs:GeoFirestore-Android:v1.5.0")
+    implementation("com.google.maps.android:android-maps-utils:2.3.0")
+
+    implementation("androidx.compose.foundation:foundation")
+
+
+
+
+
+
 
     // Testing
     testImplementation(libs.junit)

@@ -1,9 +1,11 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -59,6 +62,7 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalCe
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModalUpdateApp
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
+import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.SolicitarPermisosUbicacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.DrawerBody
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.estructuras.DrawerHeader
@@ -69,7 +73,11 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.TipoServicio
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.network.RetrofitBuilder
 import com.alcaldiasantaananorte.nortegojetpackcompose.providers.AuthProvider
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
+import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorGris1Gob
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.opciones.ServiciosViewModel
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.denuncias.redireccionarAjustes
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -99,9 +107,21 @@ fun PrincipalScreen(
     var popNumeroBloqueado by remember { mutableStateOf(false) }
     var popNuevaActializacion by remember { mutableStateOf(false) }
     val popErrorLoginFirebase = remember { mutableStateOf(false) }
+    var boolDatosCargados by remember { mutableStateOf(false) }
+    var popPermisoGPS by remember { mutableStateOf(false) }
 
     val versionLocal = getVersionName(ctx)
     val authProvider = AuthProvider()
+
+
+    //  ES PARA VERIFICAR PERMISOS DE UBICACION CUANDO SE CARGUE LA PANTALLA,
+    // UTILIZADO PARA CUANDO SE ABRE EL MAPA DE RECOLECTOR EN VIVO
+    if(boolDatosCargados){
+        SolicitarPermisosUbicacion(
+            onPermisosConcedidos = { },
+            onPermisosDenegados = { }
+        )
+    }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -306,22 +326,28 @@ fun PrincipalScreen(
                                                     }
                                                 }
                                                 5 -> {
-                                                    // MAPA RECOLECTORES
-                                                    if (authProvider.auth.currentUser != null) {
-                                                        // Intentar obtener un token válido
-                                                        authProvider.auth.currentUser?.getIdToken(true)
-                                                            ?.addOnCompleteListener { tokenTask ->
-                                                                if (tokenTask.isSuccessful) {
-                                                                    // Token válido, redirigir al mapa
-                                                                    redireccionarMapaMotoristas(navController)
-                                                                } else {
-                                                                    // El token no es válido, registrar un nuevo usuario anónimo
-                                                                    iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+
+                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
+                                                        == PackageManager.PERMISSION_GRANTED) {
+
+                                                        if (authProvider.auth.currentUser != null) {
+                                                            // Intentar obtener un token válido
+                                                            authProvider.auth.currentUser?.getIdToken(true)
+                                                                ?.addOnCompleteListener { tokenTask ->
+                                                                    if (tokenTask.isSuccessful) {
+                                                                        // Token válido, redirigir al mapa
+                                                                        redireccionarMapaMotoristas(navController)
+                                                                    } else {
+                                                                        // El token no es válido, registrar un nuevo usuario anónimo
+                                                                        iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+                                                                    }
                                                                 }
-                                                            }
-                                                    } else {
-                                                        // El usuario no está autenticado, registrar un nuevo usuario anónimo
-                                                        iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+                                                        } else {
+                                                            // El usuario no está autenticado, registrar un nuevo usuario anónimo
+                                                            iniciarSesionAnonima(authProvider, navController, viewModel, popErrorLoginFirebase)
+                                                        }
+                                                    }else{
+                                                        popPermisoGPS = true
                                                     }
                                                 }
 
@@ -430,6 +456,8 @@ fun PrincipalScreen(
                         val isUpdateAvailable = result.versionandroid != versionLocal
                         if (isUpdateAvailable) { popNuevaActializacion = true }
                     }
+
+                    boolDatosCargados = true
                 }
                 else -> {
                     // Error, mostrar Toast
@@ -451,6 +479,44 @@ fun PrincipalScreen(
             )
             showToastErrorWhats = true
         }
+
+
+
+        if(popPermisoGPS){
+            AlertDialog(
+                onDismissRequest = { popPermisoGPS = false },
+                title = { Text(stringResource(R.string.permiso_gps_requerido)) },
+                text = { Text(stringResource(R.string.para_usar_esta_funcion_gps)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            popPermisoGPS = false
+                            redireccionarAjustes(ctx)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorAzulGob,
+                            contentColor = ColorBlancoGob
+                        )
+                    ){
+                        Text(stringResource(R.string.ir_a_ajustes))
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            popPermisoGPS = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorGris1Gob,
+                            contentColor = ColorBlancoGob
+                        )
+                    ){
+                        Text(stringResource(R.string.cancelar))
+                    }
+                }
+            )
+        }
+
     }
 }
 
@@ -459,7 +525,7 @@ private fun iniciarSesionAnonima(
     authProvider: AuthProvider,
     navController: NavHostController,
     viewModel: ServiciosViewModel,
-    popErrorLoginFirebase: MutableState<Boolean>
+    popErrorLoginFirebase: MutableState<Boolean>,
 ) {
     viewModel.setLoading(loading = true)
 
@@ -480,12 +546,13 @@ private fun iniciarSesionAnonima(
 
 
 fun redireccionarMapaMotoristas(navController: NavHostController){
-    navController.navigate(
-        Routes.VistaMotoristas.route) {
-        navOptions {
-            launchSingleTop = true
+        navController.navigate(
+            Routes.VistaMotoristas.route
+        ) {
+            navOptions {
+                launchSingleTop = true
+            }
         }
-    }
 }
 
 // redireccionar a vista login

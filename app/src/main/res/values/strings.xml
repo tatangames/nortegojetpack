@@ -70,6 +70,14 @@
     <string name="enviar_solicitud">Enviar Solicitud</string>
     <string name="error_login_firebase">Error al abrir el Mapa, reintentar de nuevo</string>
     <string name="no_hay_recolectores_disponibles">No hay Recolectores Disponibles</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="recolectores_disponibles">Recolectores Disponibles</string>
+    <string name="scroll">Scroll</string>
+    <string name="centrar_ubicacion">Centrar Ubicación</string>
+
+
+
+
 
 
 </resources>

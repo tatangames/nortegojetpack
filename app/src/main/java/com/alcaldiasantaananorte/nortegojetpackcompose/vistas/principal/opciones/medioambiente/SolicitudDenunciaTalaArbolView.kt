@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -119,6 +120,8 @@ fun SolicitudDenunciaTalaArbolView(
     var popPermisoGPS by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf(0) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -170,7 +173,8 @@ fun SolicitudDenunciaTalaArbolView(
         imageBitmap = correctedBitmap
     }
 
-
+    // cerrar teclado
+    keyboardController?.hide()
 
 
     val cameraPermission = Manifest.permission.CAMERA
@@ -195,10 +199,6 @@ fun SolicitudDenunciaTalaArbolView(
             // Log.d("PERMISO", "esperando respuesta")
         }
     }
-
-
-
-
 
 
     val file = remember { File(context.filesDir, "camera_photo.jpg") }
@@ -589,7 +589,6 @@ fun SolicitudDenunciaTalaArbolView(
                     }
                 )
             }
-
 
             if(popPermisoGPS){
                 AlertDialog(

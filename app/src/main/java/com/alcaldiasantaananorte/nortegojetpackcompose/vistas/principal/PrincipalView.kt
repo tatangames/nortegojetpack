@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -109,6 +110,7 @@ fun PrincipalScreen(
     val popErrorLoginFirebase = remember { mutableStateOf(false) }
     var boolDatosCargados by remember { mutableStateOf(false) }
     var popPermisoGPS by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val versionLocal = getVersionName(ctx)
     val authProvider = AuthProvider()
@@ -130,6 +132,9 @@ fun PrincipalScreen(
             viewModel.serviciosRetrofit(_token, idonesignal)
         }
     }
+
+    // ocultar teclado
+    keyboardController?.hide()
 
     ModalNavigationDrawer(
         drawerState = drawerState,

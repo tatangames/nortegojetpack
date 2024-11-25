@@ -46,6 +46,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import org.imperiumlabs.geofirestore.listeners.GeoQueryEventListener
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -80,6 +81,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -108,17 +110,13 @@ fun MapaClienteView(navController: NavController){
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     val locationPermissionGranted = remember { mutableStateOf(false) }
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
-    val driverMarkers = remember { mutableStateListOf<DriverLocation>() }
     val cameraPositionState = rememberCameraPositionState()
     var isLoading by remember { mutableStateOf(true) }
-    // Convertir el drawable a BitmapDescriptor
     val driverIcon = remember { mutableStateOf<BitmapDescriptor?>(null) }
-
-
+    val driverMap = remember { mutableStateMapOf<String, DriverLocation>() }
+    val markerMap = remember { mutableStateMapOf<String, MarkerState>() }
     val showAvailableDrivers = remember { mutableStateOf(false) }
     val availableDrivers = remember { mutableStateListOf<DriverLocation>() }
-    val driverMap = remember { mutableStateMapOf<String, DriverLocation>() }
-
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -161,34 +159,39 @@ fun MapaClienteView(navController: NavController){
 
                 // Buscar motoristas cercanos
                 getNearbyDrivers(location) { nearbyDrivers ->
-                    // Utilizamos un mapa para hacer un seguimiento de los conductores por ID
-                    val newDriverMap = nearbyDrivers.associateBy { it.id }
 
-                    // Actualizamos solo los conductores que han cambiado
-                    newDriverMap.forEach { (driverId, driver) ->
-                        val existingDriver = driverMap[driverId]
-                        if (existingDriver == null || existingDriver.latlng != driver.latlng) {
-                            driverMap[driverId!!] = driver // Actualizamos el conductor
-                        }
+                    // Actualizar la lista de conductores disponibles
+                    availableDrivers.clear() // Limpiar la lista antes de agregar nuevos conductores
+                    availableDrivers.addAll(nearbyDrivers)
+
+                    // Procesar los conductores en el mapa
+                    val nearbyDriverIds = nearbyDrivers.map { it.id!! }
+
+                    // Eliminar conductores que ya no están disponibles
+                    val driversToRemove = driverMap.keys - nearbyDriverIds
+                    driversToRemove.forEach { id ->
+                        driverMap.remove(id)
+                        markerMap.remove(id) // Eliminar marcador correspondiente
                     }
 
-                    // Filtramos solo los conductores disponibles (modifica esta lógica si es necesario)
-                    availableDrivers.clear()
-                    availableDrivers.addAll(driverMap.values.filter { it.descripcion != null })
+                    // Agregar o actualizar conductores
+                    nearbyDrivers.forEach { driver ->
+                        val id = driver.id!!
+                        driverMap[id] = driver
 
-                    // Actualizamos la lista de marcadores (sin borrar todos)
-                    driverMarkers.clear()
-                    driverMarkers.addAll(driverMap.values)
+                        // Actualizar la posición del marcador o agregar uno nuevo
+                        markerMap[id]?.apply {
+                            position = LatLng(driver.latlng!!.latitude, driver.latlng!!.longitude)
+                        } ?: run {
+                            markerMap[id] = MarkerState(
+                                position = LatLng(driver.latlng!!.latitude, driver.latlng!!.longitude)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
-
-
-
-
-
-
 
     // Renderizar mapa cuando la ubicación está disponible
     Box(modifier = Modifier.fillMaxSize()) {
@@ -204,17 +207,18 @@ fun MapaClienteView(navController: NavController){
             ),
             onMapLoaded = onMapLoadedCallback
         ) {
-            driverMarkers.forEach { driver ->
+            driverMap.values.forEach { driver ->
                 driverIcon.value?.let { icon ->
                     Marker(
                         state = MarkerState(position = LatLng(driver.latlng!!.latitude, driver.latlng!!.longitude)),
-                        title = driver.nombre ?: "Recolector disponible",
+                        title = driver.nombre ?: stringResource(id = R.string.recolectores_disponibles),
                         snippet = driver.descripcion ?: "",
                         icon = icon
                     )
                 }
             }
         }
+
 
         // Botón para centrar la cámara en la ubicación actual
         FloatingActionButton(
@@ -226,48 +230,43 @@ fun MapaClienteView(navController: NavController){
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 16.dp)
-                .offset(y = (-100).dp),
+                .offset(y = (-65).dp),
             containerColor = BlueSoft, // Aplica el color azul suave aquí
             contentColor = Color.White
         ) {
             Icon(
                 imageVector = Icons.Default.MyLocation,
-                contentDescription = "Centrar ubicación"
+                contentDescription = stringResource(id = R.string.centrar_ubicacion)
             )
         }
 
 
 
-
-
-        // Botón para mostrar/ocultar lista de conductores disponibles
         FloatingActionButton(
             onClick = {
                 showAvailableDrivers.value = !showAvailableDrivers.value
             },
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(16.dp),
+                .padding(top = 32.dp, start = 25.dp),
+
             containerColor = BlueSoft,
             contentColor = Color.White
         ) {
-            Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = "Mostrar conductores disponibles")
+            Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = stringResource(id = R.string.recolectores_disponibles))
         }
 
-        // Mostrar lista de conductores disponibles
-
+        // Mostrar lista de conductores disponibles en un modal
         if (showAvailableDrivers.value) {
             AvailableDriversList(
                 availableDrivers = availableDrivers,
                 onDriverClick = { selectedDriver ->
-                    // Cierra el modal
+                    // Cierra el modal y centra la cámara en el conductor seleccionado
                     showAvailableDrivers.value = false
-
-                    // Posiciona la cámara sobre el conductor seleccionado
                     selectedDriver.latlng?.let { location ->
                         cameraPositionState.position = CameraPosition.fromLatLngZoom(
                             LatLng(location.latitude, location.longitude),
-                            14f // Nivel de zoom deseado
+                            14f
                         )
                     }
                 },
@@ -284,167 +283,11 @@ fun MapaClienteView(navController: NavController){
 
 
 
-@Composable
-fun AvailableDriversList(
-    availableDrivers: List<DriverLocation>,
-    onDriverClick: (DriverLocation) -> Unit,
-    onClose: () -> Unit
-) {
-    // Animación para el indicador de scroll
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val translateAnim = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "Translate Animation"
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-    ) {
-        Card(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(16.dp)
-                .fillMaxWidth(0.8f)
-                .heightIn(min = 250.dp, max = 350.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                // Encabezado con indicador de scroll
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        "Conductores Disponibles",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-
-                    // Indicador de scroll animado
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Scroll para ver más",
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .offset(y = translateAnim.value.dp)
-                            .size(24.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
-                    val scrollState = rememberLazyListState()
-                    val isScrolledToEnd = !scrollState.canScrollForward
-                    val sortedDrivers = availableDrivers.sortedBy { it.tipo }
-
-                    LazyColumn(
-                        state = scrollState,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(sortedDrivers) { driver ->
-                            DriverItem(driver = driver, onDriverClick = onDriverClick)
-                            Divider(
-                                color = Color.LightGray,
-                                thickness = 0.5.dp,
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
-                        }
-                    }
-
-                    // Gradiente en la parte inferior que se desvanece cuando llegas al final
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .height(32.dp)
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        MaterialTheme.colors.surface.copy(
-                                            alpha = if (isScrolledToEnd) 0f else 0.8f
-                                        )
-                                    )
-                                )
-                            )
-                    )
-                }
-
-                Button(
-                    onClick = onClose,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Cerrar")
-                }
-            }
-        }
-    }
-}
-
-
-
-@Composable
-private fun DriverItem(driver: DriverLocation, onDriverClick: (DriverLocation) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.camion60), // Reemplaza con el nombre del archivo
-            contentDescription = "Recolector",
-            modifier = Modifier.size(32.dp), // Ajusta el tamaño según sea necesario
-            tint = Color.Unspecified // Usa los colores originales del ícono
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = driver.nombre ?: "",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onDriverClick(driver) } // Maneja el clic
-                .padding(vertical = 8.dp),
-            style = MaterialTheme.typography.body1
-        )
-    }
-}
-
-
-// Función para convertir drawable a BitmapDescriptor
-private fun getBitmapDescriptor(context: Context, resourceId: Int): BitmapDescriptor {
-    val drawable = ContextCompat.getDrawable(context, resourceId)
-    drawable?.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
-    val bitmap = Bitmap.createBitmap(
-        drawable?.intrinsicWidth ?: 0,
-        drawable?.intrinsicHeight ?: 0,
-        Bitmap.Config.ARGB_8888
-    )
-    val canvas = Canvas(bitmap)
-    drawable?.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
-}
-
-
 fun getNearbyDrivers(
     currentLocation: LatLng,
     onDriversFound: (List<DriverLocation>) -> Unit
 ) {
-    GeoProvider().getNearbyDrivers(currentLocation, 30.0)
+    GeoProvider().getNearbyDrivers(currentLocation, 10_000.0) // 10,000 km
         .addGeoQueryEventListener(object : GeoQueryEventListener {
             val drivers = mutableMapOf<String, DriverLocation>()
 
@@ -466,19 +309,29 @@ fun getNearbyDrivers(
             }
 
             override fun onKeyExited(documentID: String) {
+                Log.d("FIREBASE", "Conductor desconectado: $documentID")
 
+                // Eliminar el conductor de la lista
+                drivers.remove(documentID)
+                onDriversFound(drivers.values.toList()) // Actualiza la lista de conductores disponibles
             }
 
             override fun onKeyMoved(documentID: String, location: GeoPoint) {
-
+                Log.d("FIREBASE", "Conductor en movimiento: $documentID")
             }
 
-            override fun onGeoQueryError(exception: Exception) {}
+            override fun onGeoQueryError(exception: Exception) {
+                Log.e("FIREBASE", "Error en la consulta geográfica: ${exception.message}")
+            }
+
             override fun onGeoQueryReady() {
                 onDriversFound(drivers.values.toList())
             }
         })
 }
+
+
+
 
 
 fun startLocationUpdates(
@@ -534,8 +387,170 @@ fun hasLocationPermission(context: Context): Boolean {
 
 
 
+@Composable
+fun AvailableDriversList(
+    availableDrivers: List<DriverLocation>,
+    onDriverClick: (DriverLocation) -> Unit,
+    onClose: () -> Unit
+) {
+    // Animación para el indicador de scroll
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val translateAnim = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "Translate Animation"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+    ) {
+        Card(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(16.dp)
+                .fillMaxWidth(0.8f)
+                .heightIn(min = 250.dp, max = 350.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Encabezado con indicador de scroll
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(id = R.string.recolectores_disponibles),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+
+                    // Indicador de scroll animado
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(id = R.string.scroll),
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .offset(y = translateAnim.value.dp)
+                            .size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    val scrollState = rememberLazyListState()
+                    val isScrolledToEnd = !scrollState.canScrollForward
+                    val sortedDrivers = availableDrivers.sortedBy { it.tipo }
+
+                    LazyColumn(
+                        state = scrollState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(sortedDrivers) { driver ->
+                            DriverItem(driver = driver, onDriverClick = onDriverClick)
+                            Divider(
+                                color = Color.LightGray,
+                                thickness = 0.5.dp,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    // Gradiente en la parte inferior que se desvanece cuando llegas al final
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(32.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        MaterialTheme.colors.surface.copy(
+                                            alpha = if (isScrolledToEnd) 0f else 0.8f
+                                        )
+                                    )
+                                )
+                            )
+                    )
+                }
+
+                Button(
+                    onClick = onClose,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BlueSoft, // Color de fondo del botón
+                        contentColor = Color.White  // Color del texto o íconos dentro del botón
+                    )
+                ) {
+
+                    Text(stringResource(id = R.string.cerrar))
+                }
+            }
+        }
+    }
+}
 
 
+
+
+
+@Composable
+private fun DriverItem(driver: DriverLocation, onDriverClick: (DriverLocation) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.camion60), // Reemplaza con el nombre del archivo
+            contentDescription = "Recolector",
+            modifier = Modifier.size(32.dp), // Ajusta el tamaño según sea necesario
+            tint = Color.Unspecified // Usa los colores originales del ícono
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = driver.nombre ?: "",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onDriverClick(driver) } // Maneja el clic
+                .padding(vertical = 8.dp),
+            style = MaterialTheme.typography.body1
+        )
+    }
+}
+
+
+
+
+
+// Función para convertir drawable a BitmapDescriptor
+private fun getBitmapDescriptor(context: Context, resourceId: Int): BitmapDescriptor {
+    val drawable = ContextCompat.getDrawable(context, resourceId)
+    drawable?.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+    val bitmap = Bitmap.createBitmap(
+        drawable?.intrinsicWidth ?: 0,
+        drawable?.intrinsicHeight ?: 0,
+        Bitmap.Config.ARGB_8888
+    )
+    val canvas = Canvas(bitmap)
+    drawable?.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
 
 
 

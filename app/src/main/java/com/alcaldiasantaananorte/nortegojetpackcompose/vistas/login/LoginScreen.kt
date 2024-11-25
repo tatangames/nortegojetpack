@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -78,8 +79,7 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
         Font(R.font.montserratmedium)
     )
 
-
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     val smsPermission = Manifest.permission.RECEIVE_SMS
     val permissionStateSMS= rememberPermissionState(permission = smsPermission)
 
@@ -102,8 +102,6 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             // Log.d("PERMISO", "esperando respuesta")
         }
     }
-
-
 
 
     Box(
@@ -156,6 +154,8 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
             // Botón de registro
             Button(
                 onClick = {
+
+                    keyboardController?.hide()
 
                     when {
                         txtFieldNumero.isBlank() -> {
@@ -239,8 +239,6 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = vi
                 // SOLO PARA DESARROLLO
                 CustomToasty(ctx, "Aplicación en Desarrollo", ToastType.ERROR)
             }
-
-
             else -> {
                 // Error, mostrar Toast
                 CustomToasty(ctx, stringResource(id = R.string.error_reintentar), ToastType.ERROR)

@@ -13,5 +13,7 @@ class AuthProvider {
     }
 
 
-
+    fun cerrarSesion() {
+        auth.signOut()
+    }
 }

@@ -75,6 +75,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.FireTruck
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -86,6 +87,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -116,9 +118,6 @@ fun MapaClienteView(navController: NavController){
     val showAvailableDrivers = remember { mutableStateOf(false) }
     val availableDrivers = remember { mutableStateListOf<DriverLocation>() }
     val driverMap = remember { mutableStateMapOf<String, DriverLocation>() }
-    var isListVisible by remember { mutableStateOf(true) }
-
-
 
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -175,7 +174,7 @@ fun MapaClienteView(navController: NavController){
 
                     // Filtramos solo los conductores disponibles (modifica esta lógica si es necesario)
                     availableDrivers.clear()
-                    availableDrivers.addAll(driverMap.values.filter { it.description != null })
+                    availableDrivers.addAll(driverMap.values.filter { it.descripcion != null })
 
                     // Actualizamos la lista de marcadores (sin borrar todos)
                     driverMarkers.clear()
@@ -209,8 +208,8 @@ fun MapaClienteView(navController: NavController){
                 driverIcon.value?.let { icon ->
                     Marker(
                         state = MarkerState(position = LatLng(driver.latlng!!.latitude, driver.latlng!!.longitude)),
-                        title = driver.description ?: "Recolector disponible",
-                        //snippet = "",
+                        title = driver.nombre ?: "Recolector disponible",
+                        snippet = driver.descripcion ?: "",
                         icon = icon
                     )
                 }
@@ -260,10 +259,21 @@ fun MapaClienteView(navController: NavController){
         if (showAvailableDrivers.value) {
             AvailableDriversList(
                 availableDrivers = availableDrivers,
-                onClose = { showAvailableDrivers.value = false } // Cierra la lista cuando se toca afuera
+                onDriverClick = { selectedDriver ->
+                    // Cierra el modal
+                    showAvailableDrivers.value = false
+
+                    // Posiciona la cámara sobre el conductor seleccionado
+                    selectedDriver.latlng?.let { location ->
+                        cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                            LatLng(location.latitude, location.longitude),
+                            14f // Nivel de zoom deseado
+                        )
+                    }
+                },
+                onClose = { showAvailableDrivers.value = false }
             )
         }
-
     }
 
 
@@ -277,17 +287,19 @@ fun MapaClienteView(navController: NavController){
 @Composable
 fun AvailableDriversList(
     availableDrivers: List<DriverLocation>,
+    onDriverClick: (DriverLocation) -> Unit,
     onClose: () -> Unit
 ) {
     // Animación para el indicador de scroll
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "")
     val translateAnim = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 10f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000),
             repeatMode = RepeatMode.Reverse
-        )
+        ),
+        label = "Translate Animation"
     )
 
     Box(
@@ -336,18 +348,14 @@ fun AvailableDriversList(
                 ) {
                     val scrollState = rememberLazyListState()
                     val isScrolledToEnd = !scrollState.canScrollForward
+                    val sortedDrivers = availableDrivers.sortedBy { it.tipo }
 
                     LazyColumn(
                         state = scrollState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(availableDrivers) { driver ->
-                            DriverItem(driver = driver)
-                            DriverItem(driver = driver)
-                            DriverItem(driver = driver)
-                            DriverItem(driver = driver)
-                            DriverItem(driver = driver)
-                            DriverItem(driver = driver)
+                        items(sortedDrivers) { driver ->
+                            DriverItem(driver = driver, onDriverClick = onDriverClick)
                             Divider(
                                 color = Color.LightGray,
                                 thickness = 0.5.dp,
@@ -387,8 +395,9 @@ fun AvailableDriversList(
 }
 
 
+
 @Composable
-private fun DriverItem(driver: DriverLocation) {
+private fun DriverItem(driver: DriverLocation, onDriverClick: (DriverLocation) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -396,15 +405,20 @@ private fun DriverItem(driver: DriverLocation) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
+            painter = painterResource(id = R.drawable.camion60), // Reemplaza con el nombre del archivo
+            contentDescription = "Recolector",
+            modifier = Modifier.size(32.dp), // Ajusta el tamaño según sea necesario
+            tint = Color.Unspecified // Usa los colores originales del ícono
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
         Text(
-            text = driver.description ?: "",
+            text = driver.nombre ?: "",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onDriverClick(driver) } // Maneja el clic
+                .padding(vertical = 8.dp),
             style = MaterialTheme.typography.body1
         )
     }
@@ -439,7 +453,9 @@ fun getNearbyDrivers(
                 driverDoc.get().addOnSuccessListener { document ->
                     if (document != null) {
                         val description = document.getString("descripcion")
-                        val newDriver = DriverLocation(documentID, LatLng(location.latitude, location.longitude), description)
+                        val nombre = document.getString("nombre")
+                        val tipo = document.getLong("tipo")?.toInt()
+                        val newDriver = DriverLocation(documentID, LatLng(location.latitude, location.longitude), description, nombre, tipo)
 
                         if (drivers[documentID] != newDriver) { // Solo actualiza si cambió
                             drivers[documentID] = newDriver
@@ -447,22 +463,14 @@ fun getNearbyDrivers(
                         }
                     }
                 }
-
             }
 
             override fun onKeyExited(documentID: String) {
-                /*if (drivers.containsKey(documentID)) {
-                    drivers.remove(documentID)
-                    onDriversFound(drivers.values.toList())
-                }*/
+
             }
 
             override fun onKeyMoved(documentID: String, location: GeoPoint) {
-                /*val existingDriver = drivers[documentID]
-                if (existingDriver?.latlng != LatLng(location.latitude, location.longitude)) {
-                    drivers[documentID]?.latlng = LatLng(location.latitude, location.longitude)
-                    onDriversFound(drivers.values.toList())
-                }*/
+
             }
 
             override fun onGeoQueryError(exception: Exception) {}

@@ -25,13 +25,13 @@ class ServiciosViewModel() : ViewModel() {
         _isLoading.value = loading
     }
 
-
     fun serviciosRetrofit(token: String, onesignal: String) {
         if (isRequestInProgress) return
 
         isRequestInProgress = true
         _isLoading.value = true
-        disposable = RetrofitBuilder.getAuthenticatedApiService(token).listadoServicios(onesignal)
+        // DEVICE SIEMPRE SERA 1, REPRESENTA QUE ES SOLICITUD DESDE ANDROID
+        disposable = RetrofitBuilder.getAuthenticatedApiService(token).listadoServicios(onesignal, "1")
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .retry()

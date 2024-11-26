@@ -281,25 +281,38 @@ fun PrincipalScreen(
 
                                             when (idTipoServicio) {
                                                 1 -> {
-                                                    // Navegar a la pantalla VistaDenunciaBasica
-                                                    navController.navigate(
-                                                        Routes.VistaDenunciaBasica.createRoute(
-                                                            servicio.id,
-                                                            titulo,
-                                                            descripcion
-                                                        ),
-                                                        navOptions {
-                                                            launchSingleTop = true
-                                                        }
-                                                    )
+
+                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
+                                                        == PackageManager.PERMISSION_GRANTED) {
+
+                                                        // Navegar a la pantalla VistaDenunciaBasica
+                                                        navController.navigate(
+                                                            Routes.VistaDenunciaBasica.createRoute(
+                                                                servicio.id,
+                                                                titulo,
+                                                                descripcion
+                                                            ),
+                                                            navOptions {
+                                                                launchSingleTop = true
+                                                            }
+                                                        )
+                                                    }else{
+                                                        popPermisoGPS = true
+                                                    }
                                                 }
                                                 2 -> {
-                                                    // solicitud y denuncias tala arbol
-                                                    navController.navigate(
-                                                        Routes.VistaSolicitudTalaArbol.route) {
-                                                        navOptions {
-                                                            launchSingleTop = true
+
+                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
+                                                        == PackageManager.PERMISSION_GRANTED) {
+
+                                                        navController.navigate(
+                                                            Routes.VistaSolicitudTalaArbol.route) {
+                                                            navOptions {
+                                                                launchSingleTop = true
+                                                            }
                                                         }
+                                                    }else{
+                                                        popPermisoGPS = true
                                                     }
 
                                                 }

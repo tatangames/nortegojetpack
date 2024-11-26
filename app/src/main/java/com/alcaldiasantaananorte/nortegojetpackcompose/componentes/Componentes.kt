@@ -75,7 +75,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun LoadingModal(isLoading: Boolean) {
+fun LoadingModal(isLoading: Boolean, titulo:String = "Cargando...") {
     if (isLoading) {
         Dialog(onDismissRequest = { /* Evitar que se cierre el modal */ }) {
             Box(
@@ -91,7 +91,7 @@ fun LoadingModal(isLoading: Boolean) {
                     CircularProgressIndicator(color = ColorAzulGob)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Cargando...",
+                        text = titulo,
                         fontSize = 18.sp,
                         color = ColorNegroGob
                     )

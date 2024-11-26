@@ -47,16 +47,12 @@ import org.imperiumlabs.geofirestore.listeners.GeoQueryEventListener
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,7 +63,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -76,10 +71,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.FireTruck
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -94,14 +86,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.BlueSoft
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.MapsInitializer
-import com.google.android.gms.maps.model.Marker
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -516,7 +504,7 @@ private fun DriverItem(driver: DriverLocation, onDriverClick: (DriverLocation) -
     ) {
         Icon(
             painter = painterResource(id = R.drawable.camion60), // Reemplaza con el nombre del archivo
-            contentDescription = "Recolector",
+            contentDescription = stringResource(id = R.string.recolector),
             modifier = Modifier.size(32.dp), // Ajusta el tamaño según sea necesario
             tint = Color.Unspecified // Usa los colores originales del ícono
         )

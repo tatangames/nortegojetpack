@@ -56,10 +56,8 @@ import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.BarraToolbarC
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1ImageBoton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.LoadingModal
-import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.RequestCameraPermission
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.SolicitarPermisosUbicacion
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.PhoneNumberVisualTransformation
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorAzulGob
 import com.alcaldiasantaananorte.nortegojetpackcompose.ui.theme.ColorBlancoGob
@@ -114,8 +112,10 @@ fun DenunciaBasicaScreen(
     var latitudUsuario by remember { mutableStateOf<Double?>(null) }
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
     val coroutineScope = rememberCoroutineScope()
-
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    var isLoadingUbicacion by remember { mutableStateOf(false) }
+
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -124,19 +124,24 @@ fun DenunciaBasicaScreen(
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
 
+            isLoadingUbicacion = true
+
             val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             hayPermisoGps = true
 
             lastKnownLocation?.let {
                 latitudUsuario = it.latitude
                 longitudUsuario = it.longitude
+                isLoadingUbicacion = false
             } ?: run {
                 // Manejar el caso donde lastKnownLocation es nulo
                 Log.d("Location", "No se pudo obtener la ubicación")
+                isLoadingUbicacion = false
             }
         } else {
             // Manejar el caso donde no se tienen los permisos de ubicación
             Log.d("Location", "No se tienen los permisos de ubicación")
+            isLoadingUbicacion = false
         }
     }
 
@@ -524,6 +529,9 @@ fun DenunciaBasicaScreen(
                 LoadingModal(isLoading = true)
             }
 
+            if (isLoadingUbicacion) {
+                LoadingModal(isLoading = true, titulo = stringResource(R.string.obteniendo_ubicacion))
+            }
         }
     }
 

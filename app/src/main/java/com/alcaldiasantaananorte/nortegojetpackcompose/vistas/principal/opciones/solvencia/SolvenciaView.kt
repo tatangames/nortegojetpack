@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -87,6 +88,10 @@ fun SolvenciaView(
 
     var selectedOption by remember { mutableStateOf(0) }
     var showModal1Boton by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+
+
 
     // Función para obtener la ubicación
     fun getLocation() {
@@ -112,7 +117,9 @@ fun SolvenciaView(
 
     SolicitarPermisosUbicacion(
         onPermisosConcedidos = {
+
             getLocation()
+
         },
         onPermisosDenegados = {
         }
@@ -234,6 +241,8 @@ fun SolvenciaView(
 
             Button(
                 onClick = {
+
+                    keyboardController?.hide()
                     getLocation()
 
                     val isSolicitudCompleta = verificarSolicitud(context, nombre, dui)

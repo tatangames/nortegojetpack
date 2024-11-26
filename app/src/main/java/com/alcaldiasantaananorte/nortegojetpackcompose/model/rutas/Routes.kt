@@ -9,18 +9,18 @@ sealed class Routes(val route: String) {
     }
 
     object VistaPrincipal: Routes("principal")
-
     object VistaSolicitudes: Routes("solicitudes")
 
 
-    object VistaDenunciaBasica: Routes("denunciaBasica/{idservicio}/{titulo}/{descripcion}") {
-        fun createRoute(idservicio: Int, titulo:String, descripcion:String) = "denunciaBasica/$idservicio/$titulo/$descripcion"
+    object VistaDenunciaBasica : Routes("denunciaBasica/{idservicio}/{titulo}?descripcion={descripcion}") {
+        fun createRoute(idservicio: Int, titulo: String, descripcion: String? = null) =
+            "denunciaBasica/$idservicio/$titulo" +
+                    (descripcion?.let { "?descripcion=$it" } ?: "")
     }
+
 
     object VistaSolicitudTalaArbol: Routes("talaarboles")
     object VistaSolvencias: Routes("solvencias")
-
-
     object VistaMotoristas: Routes("motoristas")
 
 }

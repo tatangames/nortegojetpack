@@ -79,6 +79,7 @@ import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.media.ExifInterface
 import android.provider.MediaStore
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -113,7 +114,7 @@ fun DenunciaBasicaScreen(
     var longitudUsuario by remember { mutableStateOf<Double?>(null) }
     val coroutineScope = rememberCoroutineScope()
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     var isLoadingUbicacion by remember { mutableStateOf(false) }
 
 
@@ -334,6 +335,7 @@ fun DenunciaBasicaScreen(
             Button(
                 onClick = {
                     getLocation()
+                    keyboardController?.hide()
 
                     if(hayPermisoGps){
                         if (imageUri != null) {

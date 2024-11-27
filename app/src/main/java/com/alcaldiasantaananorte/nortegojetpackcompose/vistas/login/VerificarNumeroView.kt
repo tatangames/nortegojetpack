@@ -80,7 +80,6 @@ fun VistaVerificarNumeroView(
     val isLoadingSMS by viewModel.isLoading.observeAsState(false)
     val isLoadingCodigo by viewModelCodigo.isLoading.observeAsState(false)
     val resultadoSMS by viewModel.resultado.observeAsState()
-    val keyboardController = LocalSoftwareKeyboardController.current
     val resultadoCodigo by viewModelCodigo.resultado.observeAsState()
 
     // Asignar el teléfono al ViewModel para la llamada

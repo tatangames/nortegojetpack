@@ -285,7 +285,8 @@ fun getNearbyDrivers(
                     if (document != null) {
                         val description = document.getString("descripcion")
                         val nombre = document.getString("nombre")
-                        val tipo = document.getLong("tipo")?.toInt()
+                        val tipo: Int = document.getString("tipo")?.toIntOrNull() ?: 0
+
                         val newDriver = DriverLocation(documentID, LatLng(location.latitude, location.longitude), description, nombre, tipo)
 
                         if (drivers[documentID] != newDriver) { // Solo actualiza si cambió

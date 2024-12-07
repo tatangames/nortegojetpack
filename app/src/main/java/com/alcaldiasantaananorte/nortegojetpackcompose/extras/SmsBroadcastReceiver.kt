@@ -24,6 +24,4 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
     }
-
-
 }

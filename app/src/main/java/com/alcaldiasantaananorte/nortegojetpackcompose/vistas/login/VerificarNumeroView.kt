@@ -1,8 +1,11 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.vistas.login
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.provider.Telephony
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,15 +48,24 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.alcaldiasantaananorte.nortegojetpackcompose.extras.SMSReceiver
+//import com.alcaldiasantaananorte.nortegojetpackcompose.extras.SMSReceiver
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CountdownViewModel
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomModal1Boton
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.CustomToasty
 import com.alcaldiasantaananorte.nortegojetpackcompose.componentes.ToastType
+import com.alcaldiasantaananorte.nortegojetpackcompose.extras.SMSReceiver
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.viewmodel.login.VerificarCodigoViewModel
+import com.google.android.gms.auth.api.phone.SmsRetriever
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.gms.common.api.Status
 import kotlinx.coroutines.launch
+import java.security.MessageDigest
+
+
+
+
 
 @Composable
 fun VistaVerificarNumeroView(
@@ -89,6 +101,11 @@ fun VistaVerificarNumeroView(
         countdownViewModel.updateTimer(value = segundos)
     }
 
+    SMSCodeDetector { detectedCode ->
+        txtFieldCodigo = detectedCode
+        viewModelCodigo.setCodigo(detectedCode)
+        verificarCampos(ctx, txtFieldCodigo, msgCodigoRequerido, viewModelCodigo)
+    }
 
     // Estructura del Scaffold
     Scaffold(
@@ -124,13 +141,6 @@ fun VistaVerificarNumeroView(
             )
 
             Spacer(modifier = Modifier.height(35.dp))
-
-            // Integrar el detector de SMS
-            SMSCodeDetector { detectedCode ->
-                txtFieldCodigo = detectedCode
-                viewModelCodigo.setCodigo(detectedCode)
-                verificarCampos(ctx, txtFieldCodigo, msgCodigoRequerido, viewModelCodigo)
-            }
 
             OtpTextField(codigo = txtFieldCodigo,
                 onTextChanged = { newText ->
@@ -238,6 +248,7 @@ fun verificarCampos(ctx: Context, txtFieldCodigo: String, msgCodigoRequerido: St
         }
     }
 }
+
 
 @Composable
 fun SMSCodeDetector(onCodeDetected: (String) -> Unit) {

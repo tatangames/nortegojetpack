@@ -5,10 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -50,9 +47,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.navOptions
 import coil.compose.AsyncImage
@@ -162,6 +159,19 @@ fun PrincipalScreen(
                         drawerState.close()
                     }
                 }
+
+                // Spacer para empujar el contenido hacia arriba
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Texto de la versión
+                Text(
+                    text = "Versión " + getVersionName(ctx),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     ) {
@@ -282,8 +292,8 @@ fun PrincipalScreen(
                                             when (idTipoServicio) {
                                                 1 -> {
 
-                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
-                                                        == PackageManager.PERMISSION_GRANTED) {
+                                                    // NECESITA HABILITAR PERMISO UBICACION
+                                                    if(verificarSiPermisoUbicacion(context = ctx)){
 
                                                         // Navegar a la pantalla VistaDenunciaBasica
                                                         navController.navigate(
@@ -302,8 +312,10 @@ fun PrincipalScreen(
                                                 }
                                                 2 -> {
 
-                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
-                                                        == PackageManager.PERMISSION_GRANTED) {
+                                                    // SOLICITUD MEDIO AMBIENTE Y DENUNCIAS
+
+                                                    // NECESITA HABILITAR PERMISO UBICACION
+                                                    if(verificarSiPermisoUbicacion(context = ctx)){
 
                                                         navController.navigate(
                                                             Routes.VistaSolicitudTalaArbol.route) {
@@ -317,7 +329,7 @@ fun PrincipalScreen(
 
                                                 }
                                                 3 -> {
-                                                    // denuncias
+                                                    // DENUNCIAS WHATSAPP
                                                     val intent = Intent(Intent.ACTION_VIEW, uri)
 
                                                     try {
@@ -334,7 +346,7 @@ fun PrincipalScreen(
                                                     }
                                                 }
                                                 4 -> {
-                                                    // solvencia catastral
+                                                    // SOLVENCIA CATASTRAL
 
                                                     navController.navigate(
                                                         Routes.VistaSolvencias.route) {
@@ -345,8 +357,10 @@ fun PrincipalScreen(
                                                 }
                                                 5 -> {
 
-                                                    if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
-                                                        == PackageManager.PERMISSION_GRANTED) {
+                                                    // RECOLECTORES EN TIEMPO REAL
+
+                                                    // NECESITA HABILITAR PERMISO UBICACION
+                                                    if(verificarSiPermisoUbicacion(context = ctx)){
 
                                                         if (authProvider.auth.currentUser != null) {
                                                             // Intentar obtener un token válido
@@ -391,7 +405,6 @@ fun PrincipalScreen(
                 }
             }
 
-
             if(popErrorLoginFirebase.value){
                 CustomModal1Boton(
                     popErrorLoginFirebase.value,
@@ -402,8 +415,6 @@ fun PrincipalScreen(
                         }
                     })
             }
-
-
 
             if (showModalCerrarSesion) {
                 CustomModalCerrarSesion(showModalCerrarSesion,
@@ -458,10 +469,13 @@ fun PrincipalScreen(
             when (result.success) {
 
                 1 -> {
-                    // bloqueo de usuario
+                    // USUARIO BLOQUEADO
                     popNumeroBloqueado = true
                 }
                 2 -> {
+
+                    // CARGA LA PANTALLA PRINCIPAL
+
                     imageUrls = result.slider.map { sliderItem ->
                         // Construir la URL completa de la imagen
                         "${RetrofitBuilder.urlImagenes}${sliderItem.imagen}"
@@ -495,10 +509,9 @@ fun PrincipalScreen(
                 stringResource(id = R.string.error_abrir_whatsapp),
                 ToastType.ERROR
             )
+
             showToastErrorWhats = true
         }
-
-
 
         if(popPermisoGPS){
             AlertDialog(
@@ -538,7 +551,17 @@ fun PrincipalScreen(
     }
 }
 
+// VERIFICA SI TIENE PERMISO UBICACION PERMITIDOS
+fun verificarSiPermisoUbicacion(context: Context): Boolean{
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+        == PackageManager.PERMISSION_GRANTED) {
+        return true
+    }else{
+        return false
+    }
+}
 
+// CREA UN USUARIO ANONIMO EN FIREBASE PARA ACCEDER Y LEER LOS RECOLECTORES EN VIVO
 private fun iniciarSesionAnonima(
     authProvider: AuthProvider,
     navController: NavHostController,
@@ -562,7 +585,7 @@ private fun iniciarSesionAnonima(
 }
 
 
-
+// REDIRECCION A MAPA DE RECOLECTORES EN VIVO
 fun redireccionarMapaMotoristas(navController: NavHostController){
         navController.navigate(
             Routes.VistaMotoristas.route
@@ -583,6 +606,7 @@ private fun navigateToLogin(navController: NavHostController) {
     }
 }
 
+// REDIRECCIONA A TIENDA AUTOMATICAMENTE CON ID IDENTIFICADOR DE APP
 private fun redireccionGooglePlay(ctx:Context){
 
     val appPackageName = ctx.packageName
@@ -598,7 +622,7 @@ private fun redireccionGooglePlay(ctx:Context){
     }
 }
 
-
+// COMPARAR VERSION NAME PARA MOSTRAR CARTEL NUEVA ACTUALIZACION
 // Función auxiliar para obtener el versionName (puedes usarla fuera de composables)
 fun getVersionName(context: Context): String {
     return try {
@@ -609,6 +633,7 @@ fun getVersionName(context: Context): String {
     }
 }
 
+// ID DE ONE SIGNAL
 fun getOneSignalUserId(): String {
     val deviceState = OneSignal.User.pushSubscription.id
     return deviceState

@@ -71,14 +71,10 @@ import java.util.Date
 import java.util.Locale
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.Matrix
-import android.graphics.drawable.BitmapDrawable
 import android.media.ExifInterface
-import android.provider.MediaStore
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -118,7 +114,7 @@ fun DenunciaBasicaScreen(
     var isLoadingUbicacion by remember { mutableStateOf(false) }
 
 
-    // Función para obtener la ubicación
+    // OBTENER UBICACION DEL CLIENTE
     fun getLocation() {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -306,6 +302,7 @@ fun DenunciaBasicaScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // NO HAY LIMITE DE CARACTERES PARA LA NOTA
             TextField(
                 value = nota,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -334,7 +331,9 @@ fun DenunciaBasicaScreen(
 
             Button(
                 onClick = {
-                    getLocation()
+
+                    // AQUI YA OBTUVO LOCALIZACION, SE HACE AL INICIAR LA PANTALLA UNICAMENTE
+
                     keyboardController?.hide()
 
                     if(hayPermisoGps){
@@ -565,7 +564,7 @@ fun DenunciaBasicaScreen(
     }
 }
 
-
+// REDIRECCIONAR
 fun redireccionarAjustes(context: Context){
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         data = Uri.fromParts("package", context.packageName, null)
@@ -573,7 +572,7 @@ fun redireccionarAjustes(context: Context){
     context.startActivity(intent)
 }
 
-
+// PARA OBTENER IMAGEN DE LA CAMARA
 fun createImageFile(context: Context): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val imageFileName = "JPEG_${timeStamp}_"
@@ -584,6 +583,7 @@ fun createImageFile(context: Context): File {
     )
 }
 
+// ORIENTAR VERTICAL LA IMAGEN TOMADA DE LA CAMARA
 fun getRotatedBitmap(context: Context, uri: Uri): Bitmap? {
     val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
     val bitmap = BitmapFactory.decodeStream(inputStream)
@@ -602,7 +602,7 @@ fun getRotatedBitmap(context: Context, uri: Uri): Bitmap? {
     }
 }
 
-// Función para rotar la imagen
+// ROTACION DE IMAGEN Y SIEMPRE VERTICAL
 private fun rotateImage(source: Bitmap, angle: Int): Bitmap {
     val matrix = Matrix()
     matrix.postRotate(angle.toFloat())

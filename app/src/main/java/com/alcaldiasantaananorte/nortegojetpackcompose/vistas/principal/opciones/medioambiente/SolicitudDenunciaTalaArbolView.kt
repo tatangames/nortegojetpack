@@ -219,7 +219,6 @@ fun SolicitudDenunciaTalaArbolView(
         }
     }
 
-
     Scaffold(
         topBar = {
             BarraToolbarColor(navController, "", ColorAzulGob)
@@ -630,7 +629,6 @@ fun SolicitudDenunciaTalaArbolView(
             }
         }
     }
-
 
     resultadoSolicitud?.getContentIfNotHandled()?.let { result ->
         when (result.success) {

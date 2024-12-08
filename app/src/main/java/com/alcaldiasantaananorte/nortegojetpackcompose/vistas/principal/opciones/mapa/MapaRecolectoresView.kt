@@ -112,7 +112,7 @@ fun MapaClienteView(navController: NavController){
         locationPermissionGranted.value = isGranted
     }
 
-    // Inicializar BitmapDescriptorFactory y crear el ícono
+    // Inicializar BitmapDescriptorFactory y crear el ícono DEL CAMION
     LaunchedEffect(Unit) {
         try {
             MapsInitializer.initialize(context)
@@ -122,7 +122,7 @@ fun MapaClienteView(navController: NavController){
         }
     }
 
-    // Solicitar permisos
+    // SOLICITAR PERMISOS UBICACION
     LaunchedEffect(Unit) {
         if (!hasLocationPermission(context)) {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -131,10 +131,12 @@ fun MapaClienteView(navController: NavController){
         }
     }
 
+    // AL CARGAR MOSTRAR LOADING Y SE QUITA HASTA QUE MAPA HA SIDO CARGADO
     val onMapLoadedCallback: () -> Unit = {
         // Código que deseas ejecutar cuando el mapa esté cargado
         isLoading = false
     }
+
 
     // Obtener ubicación actual
     LaunchedEffect(locationPermissionGranted.value) {
@@ -207,7 +209,6 @@ fun MapaClienteView(navController: NavController){
             }
         }
 
-
         // Botón para centrar la cámara en la ubicación actual
         FloatingActionButton(
             onClick = {
@@ -229,7 +230,7 @@ fun MapaClienteView(navController: NavController){
         }
 
 
-
+        // MOSTRAR PANEL DE LOS DRIVER DISPONIBLES
         FloatingActionButton(
             onClick = {
                 showAvailableDrivers.value = !showAvailableDrivers.value
@@ -270,7 +271,7 @@ fun MapaClienteView(navController: NavController){
 }
 
 
-
+// METODO PARA OBTENER LOS DRIVER DE FIREBASE
 fun getNearbyDrivers(
     currentLocation: LatLng,
     onDriversFound: (List<DriverLocation>) -> Unit
@@ -318,8 +319,6 @@ fun getNearbyDrivers(
             }
         })
 }
-
-
 
 
 
@@ -374,8 +373,7 @@ fun hasLocationPermission(context: Context): Boolean {
 }
 
 
-
-
+// MODAL QUE MUESTRA CONDUCTORES EN TIEMPO REAL
 @Composable
 fun AvailableDriversList(
     availableDrivers: List<DriverLocation>,
@@ -494,7 +492,7 @@ fun AvailableDriversList(
 
 
 
-
+// ITEM DE CADA DRIVER
 @Composable
 private fun DriverItem(driver: DriverLocation, onDriverClick: (DriverLocation) -> Unit) {
     Row(

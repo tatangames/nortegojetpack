@@ -12,8 +12,8 @@ android {
         applicationId = "com.santaananortemetapan.nortego"
         minSdk = 25
         targetSdk = 34
-        versionCode = 18
-        versionName = "1.0.14"
+        versionCode = 19
+        versionName = "1.0.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -67,14 +67,14 @@ dependencies {
     implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
 
     // Navigation and Layout
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 
     // Compose UI Components
-    implementation("androidx.compose.material:material-icons-extended:1.6.3")
-    implementation("androidx.compose.ui:ui:1.6.3")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.3")
-    implementation("androidx.compose.material:material:1.6.3")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.compose.ui:ui:1.7.8")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
+    implementation("androidx.compose.material:material:1.7.8")
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -84,8 +84,8 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxandroid:3.0.0")
 
     // Lifecycle and Data
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.8")
     implementation("com.github.GrenderG:Toasty:1.5.2")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
@@ -100,8 +100,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
 
     // Google Services
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("com.google.android.gms:play-services-maps:19.1.0")
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
     // Image Loading

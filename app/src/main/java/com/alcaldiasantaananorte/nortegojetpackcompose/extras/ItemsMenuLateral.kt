@@ -22,10 +22,16 @@ sealed class ItemsMenuLateral(
 
     object ItemMenu2 : ItemsMenuLateral(
         Icons.AutoMirrored.Filled.Logout,
-        R.string.cerrar_sesion,
+        R.string.agenda,
         2
+    )
+
+    object ItemMenu3 : ItemsMenuLateral(
+        Icons.AutoMirrored.Filled.Logout,
+        R.string.cerrar_sesion,
+        3
     )
 }
 
 // Lista de items del menú lateral
-val itemsMenu = listOf(ItemsMenuLateral.ItemMenu1, ItemsMenuLateral.ItemMenu2)
+val itemsMenu = listOf(ItemsMenuLateral.ItemMenu1, ItemsMenuLateral.ItemMenu2, ItemsMenuLateral.ItemMenu3)

@@ -150,6 +150,15 @@ fun PrincipalScreen(
                         }
 
                         2 -> {
+                            // agenda
+                            navController.navigate(Routes.VistaAgenda.route) {
+                                navOptions {
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+
+                        3 -> {
                             // cerrar sesion
                             showModalCerrarSesion = true
                         }
@@ -384,6 +393,8 @@ fun PrincipalScreen(
                                                 }
 
                                                 else -> {
+                                                    // CUANDO TOCA NUEVO SERVICIO,
+                                                    // ACTIVARA ESTO SI LA APP NO ESTA ACTUALIZADA
                                                     popNuevaActializacion = true
                                                 }
                                             }
@@ -485,6 +496,14 @@ fun PrincipalScreen(
 
                     // PARA MOSTRAR MODAL DE NUEVA ACTUALIZACION
                     if(versionLocal != "N/A" && result.modalandroid == 1){
+                        // AQUI SE COMPARA LA VERSION QUE
+                        // LA VERSION DE LA APP DEBE SER LA MISMA DEL SERVIDOR, SINO
+                        // MOSTRARA NUEVA ACTUALIZACION
+
+                        // CADA VEZ QUE SE SUBA LA APP A GOOGLE PLAY SE DESACTIVA LAS ACTUALIZACIONES
+                        // Y SE ACTIVARA CUANDO YA ESTE LA APP DISPONIBLE PARA LA DESCARGA
+                        // SETEANDO LA VERSION
+
                         val isUpdateAvailable = result.versionandroid != versionLocal
                         if (isUpdateAvailable) { popNuevaActializacion = true }
                     }

@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.alcaldiasantaananorte.nortegojetpackcompose.R
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.rutas.Routes
 import com.alcaldiasantaananorte.nortegojetpackcompose.extras.TokenManager
+import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.agenda.AgendaScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.denuncias.DenunciaBasicaScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.PrincipalScreen
 import com.alcaldiasantaananorte.nortegojetpackcompose.vistas.principal.opciones.mapa.MapaClienteView
@@ -87,7 +88,7 @@ fun AppNavigation() {
         composable(Routes.VistaSolvencias.route) { SolvenciaView(navController) }
         composable(Routes.VistaMotoristas.route) { MapaClienteView(navController) }
 
-
+        composable(Routes.VistaAgenda.route) { AgendaScreen(navController) }
 
     }
 }

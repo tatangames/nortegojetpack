@@ -22,3 +22,18 @@ data class MSolicitudesListado(
     @SerializedName("dui") val dui: String?,
     @SerializedName("imagen") val imagen: String?
 )
+
+
+//****************** AGENDA **************************
+
+data class ModeloAgenda(
+    @SerializedName("success") val success: Int,
+    @SerializedName("listado") val listado: List<ModeloAgendaArray>,
+)
+
+data class ModeloAgendaArray(
+    @SerializedName("id") val id: Int,
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("telefono") val telefono: String,
+    @SerializedName("imagen") val imagen: String
+)

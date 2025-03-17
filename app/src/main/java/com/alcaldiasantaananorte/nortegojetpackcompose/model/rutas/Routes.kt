@@ -23,4 +23,5 @@ sealed class Routes(val route: String) {
     object VistaSolvencias: Routes("solvencias")
     object VistaMotoristas: Routes("motoristas")
 
+    object VistaAgenda: Routes("agenda")
 }

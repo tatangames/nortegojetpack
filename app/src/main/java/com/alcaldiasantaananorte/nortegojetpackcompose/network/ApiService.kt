@@ -1,5 +1,6 @@
 package com.alcaldiasantaananorte.nortegojetpackcompose.network
 
+import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloAgenda
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloBasico
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloListaServicios
 import com.alcaldiasantaananorte.nortegojetpackcompose.model.datos.ModeloReintentoSMS
@@ -11,6 +12,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -100,6 +102,13 @@ interface ApiService {
                             @Field("longitud") longitud: String?
 
     ): Single<ModeloBasico>
+
+
+    // AGENDA PUBLICA
+    @GET("app/agenda/informacion")
+    fun informacionAgenda(): Single<ModeloAgenda>
+
+
 
 }
 
